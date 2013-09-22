@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_cancel"
+        android:icon="@drawable/ic_menu_cancel"
+        android:showAsAction="always|withText"
+        android:title="@string/item_edit_bt_cancel"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_save"
+        android:showAsAction="always|withText"
+        android:title="@string/item_edit_bt_save"
+        android:visible="false"/>
+
+</menu>

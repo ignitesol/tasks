@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="custom_rules" default="release">
+  <property environment="env"/>
+    <target name="set-version-name">
+      <propertyfile file="version.properties">
+        <entry key="app.version.name" type="string" operation="=" value="${env.TASKS_APP_BUILD_NUMBER}" />
+      </propertyfile>
+      <property file="version.properties" />
+      <echo>Version code: ${app.version.name}</echo>
+      <property name="match.end" value='"' />
+      <property name="matchVersionName.start" value='android:versionName=\"' />
+      <replaceregexp file="AndroidManifest.xml" 
+                     match='${matchVersionName.start}[^"]*${match.end}' 
+                     replace="${matchVersionName.start}${app.version.name}${match.end}" />
+  </target>
+  <target name="-pre-build">
+    <antcall target="set-version-name"/>
+  </target>
+</project>
