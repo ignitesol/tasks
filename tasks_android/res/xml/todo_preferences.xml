@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <CheckBoxPreference 
+        android:disableDependentsState="false" 
+        android:key="@string/prefIsSyncable_Key" 
+        android:defaultValue="true" 
+        android:title="@string/prefIsSyncable_Title" />
+    <ListPreference
+        android:defaultValue="@string/prefSyncServerUrl_Default"
+        android:key="@string/prefSyncServerUrl_Key"
+        android:summary="@string/prefSyncServerUrl_Default"
+        android:title="@string/prefSyncServerUrl_Title" 
+        android:dependency="@string/prefIsSyncable_Key"/>
+    <EditTextPreference
+        android:defaultValue="@string/prefSyncRepeatTime_Default"
+        android:key="@string/prefSyncRepeatTime_Key"
+        android:summary="@string/prefSyncRepeatTime_Default"
+        android:title="@string/prefSyncRepeatTime_Title" 
+        android:dependency="@string/prefIsSyncable_Key"/>
+    
+    <ListPreference 
+         android:dependency="@string/prefIsSyncable_Key" 
+         android:title="@string/prefSyncAccount_Title" 
+         android:key="@string/prefSyncAccount_Key"/>
+
+</PreferenceScreen>
