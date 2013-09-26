@@ -8,6 +8,7 @@ import java.util.List;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +20,7 @@ import android.preference.PreferenceActivity;
 import android.view.MenuItem;
 import co.usersource.doui.DouiContentProvider;
 import co.usersource.doui.R;
+import co.usersource.doui.sync.SyncAdapter;
 
 /**
  * @author rsh
@@ -99,6 +101,14 @@ public class DouiSettingsActivity extends PreferenceActivity implements
 					getString(R.string.prefSyncServerUrl_Key), ""));
 			mSyncServerUrlPref.setSummary(mSyncServerUrlPref.getEntry());
 			
+			ContentProviderClient client = getContentResolver().acquireContentProviderClient(DouiContentProvider.AUTHORITY);
+			if(client != null)
+			{
+				((DouiContentProvider)client.getLocalContentProvider()).resetDatabase();
+				client.release();
+
+				SyncAdapter.requestSync(getApplicationContext());
+			}
 		} else if (key.equals(getString(R.string.prefSyncRepeatTime_Key))) {
 			mSyncRepeatTimePref.setSummary(sharedPreferences.getString(
 					getString(R.string.prefSyncRepeatTime_Key), ""));
