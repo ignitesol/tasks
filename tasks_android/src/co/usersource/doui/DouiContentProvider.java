@@ -17,6 +17,7 @@ import co.usersource.doui.database.DouiSQLiteOpenHelper;
 import co.usersource.doui.database.adapters.TableTodoCategoriesAdapter;
 import co.usersource.doui.database.adapters.TableTodoContextsAdapter;
 import co.usersource.doui.database.adapters.TableTodoItemsAdapter;
+import co.usersource.doui.database.adapters.TableTodoItemsContextsAdapter;
 import co.usersource.doui.database.adapters.TableTodoStatusAdapter;
 
 /**
@@ -436,6 +437,26 @@ public class DouiContentProvider extends ContentProvider {
 					"Unknown URI type passed to query(...): " + uriType);
 		}
 		return result;
+	}
+
+
+	/**
+	 * This method drops all tables from database and initialize it.
+	 */
+	public void resetDatabase()
+	{
+		douiSQLiteOpenHelper.getWritableDatabase().execSQL("DROP TABLE " +
+		                                                   TableTodoCategoriesAdapter.TABLE_TODO_CATEGORIES);
+		douiSQLiteOpenHelper.getWritableDatabase().execSQL("DROP TABLE " +
+		                                                   TableTodoStatusAdapter.TABLE_TODO_STATUSES);
+		douiSQLiteOpenHelper.getWritableDatabase().execSQL("DROP TABLE " +
+		                                                   TableTodoItemsAdapter.TABLE_TODO_ITEMS);
+		douiSQLiteOpenHelper.getWritableDatabase().execSQL("DROP TABLE " +
+		                                                   TableTodoContextsAdapter.TABLE_TODO_CONTEXTS);
+		douiSQLiteOpenHelper.getWritableDatabase().execSQL("DROP TABLE " +
+                                                           TableTodoItemsContextsAdapter.TABLE_TODO_ITEMS_CONTEXTS);
+		douiSQLiteOpenHelper.close();
+		douiSQLiteOpenHelper.onCreate(douiSQLiteOpenHelper.getWritableDatabase());
 	}
 
 }
