@@ -64,7 +64,7 @@ public class JsonDataExchangeAdapter {
 	}
 
 	private Context context;
-	private String mLastUpdateDate;
+	private static String mLastUpdateDate;
 	private ContentValues m_valuesForUpdate;
 
 	/**
@@ -74,6 +74,7 @@ public class JsonDataExchangeAdapter {
 		return context;
 	}
 
+	
 	/**
 	 * Constructor.
 	 * 
@@ -83,6 +84,11 @@ public class JsonDataExchangeAdapter {
 	public JsonDataExchangeAdapter(Context context) {
 		this.context = context;
 		this.m_valuesForUpdate = new ContentValues();
+	}
+	
+	public static void ResetUpdateDate()
+	{
+		mLastUpdateDate = null;
 	}
 
 	public void updateKeys(JSONObject data, SyncResult syncResult)
@@ -491,6 +497,7 @@ public class JsonDataExchangeAdapter {
 				this.updateLocalItems(items);
 				this.cleanDeletedCategories();
 				
+				Log.v("SGADTRACE", "LAST UPDATE DATE = " + mLastUpdateDate);
 				mLastUpdateDate = data
 						.getString(JsonDataExchangeAdapter.JSON_LAST_UPDATE_TIMESTAMP);
 

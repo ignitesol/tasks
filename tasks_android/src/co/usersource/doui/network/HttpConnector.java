@@ -27,15 +27,11 @@ import org.json.JSONObject;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import co.usersource.doui.R;
@@ -51,31 +47,16 @@ public class HttpConnector {
 	/** Base URL for DOUI services */
 	// TODO replace this with setup one
 	public static final String BASE_URL = "http://ec2-54-213-127-94.us-west-2.compute.amazonaws.com";
-	/** Auth URL part. */
-	public static final String AUTH_URI = BASE_URL + "/_ah/login";
-
+	
 	private DefaultHttpClient httpClient;
-	private Context applicationContext;
-	private IHttpConnectorAuthHandler httpConnectorAuthHandler;
 	private List<NameValuePair> params;
 	private IHttpRequestHandler httpRequestHandler;
-	private Account mCurrentAccount;
-
+	
 	/**
-	 * @return the httpConnectorAuthHandler
+	 * Auth routines require to be executed in separate thread. 
+	 * This object used as semaphore.
 	 */
-	public synchronized IHttpConnectorAuthHandler getHttpConnectorAuthHandler() {
-		return httpConnectorAuthHandler;
-	}
-
-	/**
-	 * @param httpConnectorAuthHandler
-	 *            the httpConnectorAuthHandler to set
-	 */
-	public synchronized void setHttpConnectorAuthHandler(
-			IHttpConnectorAuthHandler httpConnectorAuthHandler) {
-		this.httpConnectorAuthHandler = httpConnectorAuthHandler;
-	}
+	private Object authLock = new Object();
 
 	/**
 	 * Check whether current instance of the connector has required cookies for
@@ -83,16 +64,20 @@ public class HttpConnector {
 	 * 
 	 * @return the isAuthenticated
 	 */
-	public synchronized boolean isAuthenticated() {
+	public synchronized boolean isAuthenticated() 
+	{
 		boolean result = false;
-		for (Cookie cookie : getHttpClient().getCookieStore().getCookies()) {
-			Log.i(this.getClass().getName(),
-					"Found cookie: " + cookie.getName());
-			if (cookie.getName().equals("SACSID")
-					|| cookie.getName().equals("ACSID")) {
+		
+		for (Cookie cookie : getHttpClient().getCookieStore().getCookies()) 
+		{
+			Log.i(this.getClass().getName(), "Found cookie: " + cookie.getName());
+			
+			if (cookie.getName().equals("SACSID") || cookie.getName().equals("ACSID"))
+			{
 				result = true;
 			}
 		}
+		
 		return result;
 	}
 
@@ -125,12 +110,12 @@ public class HttpConnector {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	synchronized public void SendRequest(String URI,
+	synchronized public void SendRequest(String method, String URI,
 			List<NameValuePair> params, IHttpRequestHandler handler)
 			throws ParseException, IOException {
 		this.params = params;
 		this.httpRequestHandler = handler;
-		new PerformRequestTask().execute(URI);
+		new PerformRequestTask().execute(method, URI);
 	}
 
 	public JSONObject sendRequestMainThread(String URI,
@@ -163,20 +148,15 @@ public class HttpConnector {
 			final HttpResponse response = getHttpClient().execute(postRequest);
 
 			final String data = EntityUtils.toString(response.getEntity());
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				
-				if(response.getHeaders("X-Auto-Login").length > 0)
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
+			{
+				try {
+					result = new JSONObject(data);
+				} 
+				catch (JSONException e) 
 				{
-					this.authenticate(this.applicationContext, null);
-				}
-				else{
-					try {
-						result = new JSONObject(data);
-					} catch (JSONException e) {
-						Log.v(this.getClass().getName(),
-								"Cannot parse json from server: " + data.substring(0, 20));
+					Log.v(this.getClass().getName(), "Cannot parse json from server: " + data.substring(0, 20));
 						e.printStackTrace();
-					}
 				}
 			}
 			response.getEntity().consumeContent();
@@ -200,161 +180,92 @@ public class HttpConnector {
 	 *            any account from AccountManager (now only google accounts
 	 *            supported).
 	 * */
-	public void authenticate(Context applicationContext, Account account) {
-		if(account != null){
-			mCurrentAccount = account;
-		}
+	public boolean authenticate(Context applicationContext, Account account) 
+	{
+		Log.v(getClass().getName(), "Start authenticate");
 		
-		if(mCurrentAccount != null){
-			this.applicationContext = applicationContext;
-			AccountManager accountManager = AccountManager.get(applicationContext);
-			accountManager.getAuthToken(mCurrentAccount, "ah", null, false,
-					new GetAuthTokenCallback(), null);
+		try {
+			String authToken = AccountManager.get(applicationContext).blockingGetAuthToken(account, "ah", true);
+			AccountManager.get(applicationContext).invalidateAuthToken(account.type, authToken);
+			authToken = AccountManager.get(applicationContext).blockingGetAuthToken(account, "ah", true);
+			SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+			String authURL = settings.getString(applicationContext.getString(R.string.prefSyncServerUrl_Key), BASE_URL);
+			authURL += "/_ah/login" + "?continue=" + authURL + "/sync&auth=" + authToken;
+			
+			SendRequest("GET", authURL, null, new IHttpRequestHandler() {
+				public void onRequest(HttpResponse response) {
+					synchronized (HttpConnector.this.authLock) {
+						HttpConnector.this.authLock.notifyAll();
+					}
+				}
+			});
+			
+			synchronized (HttpConnector.this.authLock) {
+				HttpConnector.this.authLock.wait();
+			}
+		
+		} catch (OperationCanceledException e1) {
+			e1.printStackTrace();
+		} catch (AuthenticatorException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
+			
+		return isAuthenticated();
 	}
 
 	/**
 	 * This class intended to be used as separate thread to perform request to
 	 * server.
 	 * */
-	private class PerformRequestTask extends
-			AsyncTask<String, Integer, JSONObject> {
-		protected JSONObject doInBackground(String... uri) {
-			JSONObject result = null;
+	private class PerformRequestTask extends AsyncTask<String, Integer, HttpResponse> 
+	{
+		protected HttpResponse doInBackground(String... arg) 
+		{
+			HttpResponse result = null;
 			try {
-				getHttpClient().getParams().setBooleanParameter(
-						ClientPNames.HANDLE_REDIRECTS, false);
-				SharedPreferences sharedPref = PreferenceManager
-						.getDefaultSharedPreferences(applicationContext);
-				String prefSyncUrl = sharedPref.getString(applicationContext
-						.getString(R.string.prefSyncServerUrl_Key), BASE_URL);
-				
-				final HttpPost postRequest = new HttpPost(prefSyncUrl + "/sync");
-				HttpEntity entity = null;
-
-				entity = new UrlEncodedFormEntity(params);
-				postRequest.addHeader(entity.getContentType());
-				postRequest.setEntity(entity);
-
+				getHttpClient().getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
 				final HttpParams HttpClientParams = getHttpClient().getParams();
-				HttpConnectionParams.setConnectionTimeout(HttpClientParams,
-						REGISTRATION_TIMEOUT);
-				HttpConnectionParams.setSoTimeout(HttpClientParams,
-						REGISTRATION_TIMEOUT);
-				ConnManagerParams.setTimeout(HttpClientParams,
-						REGISTRATION_TIMEOUT);
-
-				final HttpResponse response = getHttpClient().execute(
-						postRequest);
-
-				final String data = EntityUtils.toString(response.getEntity());
-				if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					
-					try {
-						result = new JSONObject(data);
-					} catch (JSONException e) {
-						Log.v(this.getClass().getName(),
-								"Cannot parse json from server!!!");
-						e.printStackTrace();
-					}
+				HttpConnectionParams.setConnectionTimeout(HttpClientParams,	REGISTRATION_TIMEOUT);
+				HttpConnectionParams.setSoTimeout(HttpClientParams, REGISTRATION_TIMEOUT);
+				ConnManagerParams.setTimeout(HttpClientParams, REGISTRATION_TIMEOUT);
+				
+				if(arg[0] == "GET")
+				{
+					final HttpGet request = new HttpGet(arg[1]);
+					result = getHttpClient().execute(request);
 				}
+				else
+				{
+					final HttpPost postRequest = new HttpPost(arg[1]);
+					if( params != null )
+					{
+						HttpEntity entity = null;
+						entity = new UrlEncodedFormEntity(params);
+						postRequest.addHeader(entity.getContentType());
+						postRequest.setEntity(entity);
+					}
+					result = getHttpClient().execute(postRequest);
+				}
+				
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			} finally {
-				getHttpClient().getParams().setBooleanParameter(
-						ClientPNames.HANDLE_REDIRECTS, true);
+				getHttpClient().getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true);
 			}
 			return result;
 		}
 
-		protected void onPostExecute(JSONObject result) {
+		protected void onPostExecute(HttpResponse result)
+		{
 			if (httpRequestHandler != null) {
 				httpRequestHandler.onRequest(result);
 			}
 		}
 	}
-
-	/**
-	 * This class intended to be used to obtain auth cookies for current
-	 * instance.
-	 */
-	private class GetCookieTask extends AsyncTask<String, Integer, Boolean> {
-		private String prefSyncUrl;
-		private String authUrl;
-
-		protected Boolean doInBackground(String... tokens) {
-			Boolean result = false;
-			try {
-				// Don't follow redirects
-				getHttpClient().getParams().setBooleanParameter(
-						ClientPNames.HANDLE_REDIRECTS, false);
-				SharedPreferences sharedPref = PreferenceManager
-						.getDefaultSharedPreferences(applicationContext);
-				prefSyncUrl = sharedPref.getString(applicationContext
-						.getString(R.string.prefSyncServerUrl_Key), BASE_URL);
-				authUrl = prefSyncUrl + "/_ah/login" + "?continue="
-							+ prefSyncUrl + "/sync&auth=" + tokens[0];
-								
-				Log.d(this.getClass().getName(), "Getting cookie for: "	+ authUrl);
-				
-				HttpGet http_get = new HttpGet(authUrl);
-				HttpResponse response = getHttpClient().execute(http_get);
-				if (response.getStatusLine().getStatusCode() != 302) {
-					// Response should be a redirect
-					result = false;
-				}
-				if (isAuthenticated()) {
-					result =  true;
-				}
-				response.getEntity().consumeContent();
-				
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				getHttpClient().getParams().setBooleanParameter(
-						ClientPNames.HANDLE_REDIRECTS, true);
-			}
-			return result;
-		}
-
-		protected void onPostExecute(Boolean result) {
-			if (httpConnectorAuthHandler != null) {
-				if (isAuthenticated()) {
-					httpConnectorAuthHandler.onAuthSuccess();
-				} else {
-					httpConnectorAuthHandler.onAuthFail();
-				}
-			}
-		}
-	}
-
-	/** This class used to obtain auth data from AccountManager. */
-	private class GetAuthTokenCallback implements
-			AccountManagerCallback<Bundle> {
-		public void run(AccountManagerFuture<Bundle> result) {
-			Bundle bundle;
-			try {
-				bundle = result.getResult();
-				Intent intent = (Intent) bundle.get(AccountManager.KEY_INTENT);
-				if (null != intent) {
-					applicationContext.startActivity(intent);
-				} else {
-					String auth_token = bundle
-							.getString(AccountManager.KEY_AUTHTOKEN);
-					AccountManager.get(applicationContext).invalidateAuthToken("google.com", auth_token);
-					new GetCookieTask().execute(auth_token);
-				}
-			} catch (OperationCanceledException e) {
-				e.printStackTrace();
-			} catch (AuthenticatorException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	};
 }

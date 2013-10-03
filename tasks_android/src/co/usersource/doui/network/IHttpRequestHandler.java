@@ -3,7 +3,8 @@
  */
 package co.usersource.doui.network;
 
-import org.json.JSONObject;
+import org.apache.http.HttpResponse;
+
 
 /**
  * @author rsh
@@ -11,6 +12,6 @@ import org.json.JSONObject;
  */
 public interface IHttpRequestHandler {
 
-	void onRequest(JSONObject response);
+	void onRequest(HttpResponse response);
 
 }

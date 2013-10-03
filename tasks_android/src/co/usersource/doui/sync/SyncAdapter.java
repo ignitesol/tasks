@@ -28,7 +28,7 @@ import co.usersource.doui.Tasks;
 import co.usersource.doui.DouiContentProvider;
 import co.usersource.doui.R;
 import co.usersource.doui.network.HttpConnector;
-import co.usersource.doui.network.IHttpConnectorAuthHandler;
+
 
 /**
  * This class implements synchronization with server.
@@ -56,23 +56,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 */
 	public static final int SYNC_PERIOD = 300;
 
-	private static final String TAG = "DouiSyncAdapter";
+	private static final String TAG = "SGADTRACE";
 
 	/** Member for HTTP transport */
 	private HttpConnector httpConnector;
 
-	private String prefSyncUrl; // Url where Sync service running
+	/**User settings*/
+	private boolean prefIsSyncable;  // Is sync enabled in settings
+	private String prefSyncUrl;      // Url where Sync service running
+	private int prefTimeframe;
 	private Account prefSyncAccount; // Account to be used for sync
+	
+	
 	private JsonDataExchangeAdapter jsonDataExchangeAdapter;
 	
 	public static final String ACTION_SYNC_FINISHED = "co.usersourse.doui.sync_finished";
-	
-
-	/**
-	 * Auth routines require to be executed in separate thread. This object used
-	 * as semaphore.
-	 */
-	private Object authLock = new Object();
 
 	/**
 	 * {@inheritDoc}
@@ -82,7 +80,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 		
 		jsonDataExchangeAdapter = null;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -91,47 +89,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 			final String authority, ContentProviderClient provider,
 			final SyncResult syncResult) {
 
-		Log.d(TAG, "onPerformSync");
-		this.loadPreferences();
-		ContentResolver.addPeriodicSync(account, authority, new Bundle(), SyncAdapter.SYNC_PERIOD);
+		Log.d(TAG, "Start onPerformSync");
+		LoadPreferences();
 		
-		
-		
-		
-		getHttpConnector().setHttpConnectorAuthHandler(
-				new IHttpConnectorAuthHandler() {
-
-					public void onAuthSuccess() {
-						ContentResolver.requestSync(account, authority, new Bundle());
-						synchronized (SyncAdapter.this.authLock) {
-							SyncAdapter.this.authLock.notifyAll();
-						}
-					}
-
-					public void onAuthFail() {
-						Toast.makeText(getContext(),
-								"Auth to sync service failed",
-								Toast.LENGTH_LONG).show();
-						syncResult.stats.numAuthExceptions++;
-						synchronized (SyncAdapter.this.authLock) {
-							SyncAdapter.this.authLock.notifyAll();
-						}
-					}
-				});
-		
-		if (getHttpConnector().isAuthenticated()) {
-			Log.d(TAG, "httpConnector.isAuthenticated()==true. Perform sync.");
-			performSyncRoutines(syncResult);
-		} else {
-			Log.d(TAG, "httpConnector.isAuthenticated()==false. Perform auth.");
-			getHttpConnector().authenticate(getContext(), account);
-			try {
-				synchronized (SyncAdapter.this.authLock) {
-					SyncAdapter.this.authLock.wait();
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		if( prefIsSyncable )
+		{
+			if( getHttpConnector().authenticate(getContext(), prefSyncAccount))
+			{
+				Log.v(TAG, "Authentificated!!!!");
+				performSyncRoutines(syncResult);
+				ContentResolver.addPeriodicSync(account, authority, new Bundle(), prefTimeframe);
 			}
+			else
+			{
+				Log.v(TAG, "Authentificated failed");
+				//Toast.makeText(getContext().getApplicationContext(), "Auth to sync service failed", Toast.LENGTH_LONG).show();
+				syncResult.stats.numAuthExceptions++;
+			}			
 		}
 	}
 
@@ -152,14 +126,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 * @param syncResult
 	 *            SyncAdapter object which contain information about errors.
 	 */
-	private void performSyncRoutines(final SyncResult syncResult) {
+	private void performSyncRoutines(final SyncResult syncResult) 
+	{
 		Log.v(TAG, "Start synchronization (performSyncRoutines)");
+		
 		if(jsonDataExchangeAdapter == null){
 			jsonDataExchangeAdapter = new JsonDataExchangeAdapter(getContext());
 		}
 		jsonDataExchangeAdapter.readDataFromLocalDatabase();
 		this.updateKeysForNewRecords(jsonDataExchangeAdapter, syncResult);
 		this.requestSyncLocalRemote(jsonDataExchangeAdapter, syncResult);
+		
 		getContext().sendBroadcast(new Intent(SyncAdapter.ACTION_SYNC_FINISHED));
 	}
 
@@ -173,16 +150,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 * @param syncResult
 	 *            SyncAdapter object which contain information about errors.
 	 */
-	private void updateKeysForNewRecords(
-			JsonDataExchangeAdapter jsonDataExchangeAdapter,
-			SyncResult syncResult) {
-		if (jsonDataExchangeAdapter.getNewRecords().length() > 0) {
-			JSONObject keysForNewRecords = this.requestKeysForNewRecords(
-					jsonDataExchangeAdapter, syncResult);
-			if (null != keysForNewRecords) {
+	private void updateKeysForNewRecords(JsonDataExchangeAdapter jsonDataExchangeAdapter, 
+			                             SyncResult syncResult) 
+	{
+		if( jsonDataExchangeAdapter.getNewRecords().length() > 0 ) 
+		{
+			JSONObject keysForNewRecords = requestKeysForNewRecords(jsonDataExchangeAdapter, syncResult);
+			
+			if (null != keysForNewRecords) 
+			{
 				try {
-					jsonDataExchangeAdapter.updateKeys(keysForNewRecords,
-							syncResult);
+					jsonDataExchangeAdapter.updateKeys(keysForNewRecords, syncResult);
 				} catch (JSONException e) {
 					Tasks.placeNotification(getContext(),
 							Tasks.SYNC_NOTIFICATION_ID,
@@ -196,6 +174,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 						"No keys for received for "
 								+ jsonDataExchangeAdapter.getNewRecords()
 										.length() + " objects.");
+				
 				syncResult.stats.numParseExceptions++;
 			}
 		}
@@ -246,9 +225,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 * @param syncResult
 	 *            SyncAdapter object which contain information about errors.
 	 */
-	private void requestSyncLocalRemote(
-			JsonDataExchangeAdapter jsonDataExchangeAdapter,
-			SyncResult syncResult) {
+	private void requestSyncLocalRemote(JsonDataExchangeAdapter jsonDataExchangeAdapter, SyncResult syncResult) 
+	{
+		Log.v("SGADTRACE", "Start requestSyncLocalRemote");
 		final ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
 		params.add(new BasicNameValuePair(SyncAdapter.JSON_REQUEST_PARAM_NAME,
 				jsonDataExchangeAdapter.getLocalData().toString()));
@@ -272,35 +251,29 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	/**
 	 * This procedure used to load preferences for sync adapter defined by user.
 	 */
-	private void loadPreferences() {
-		SharedPreferences sharedPref = PreferenceManager
-				.getDefaultSharedPreferences(this.getContext());
-		sharedPref
-				.getBoolean(
-						this.getContext()
-								.getString(R.string.prefIsSyncable_Key), false);
-		prefSyncUrl = sharedPref.getString(
-						this.getContext().getString(
-								R.string.prefSyncServerUrl_Key),
-						this.getContext().getString(
-								R.string.prefSyncServerUrl_Default));
-		String strPrefSyncTimeframe = sharedPref.getString(this.getContext()
-				.getString(R.string.prefSyncRepeatTime_Key), "" + SYNC_PERIOD);
-		Integer.parseInt(strPrefSyncTimeframe);
-		String strPrefSyncAccount = sharedPref.getString(this.getContext()
-				.getString(R.string.prefSyncAccount_Key), "");
-		prefSyncAccount = SyncAdapter.getAccountByString(strPrefSyncAccount,
-				getContext());
+	private void LoadPreferences() 
+	{
+		Log.d(TAG, "Start LoadPreferences");
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getContext());
+		prefIsSyncable = settings.getBoolean(getContext().getString(R.string.prefIsSyncable_Key), false);
 		
-		if (null == prefSyncAccount) {
-			Log.e(this.getClass().getName(),
-					"Wrong account provided in preferences: "
-							+ strPrefSyncAccount);
-			Tasks
-					.placeNotification(
-							getContext(),
-							Tasks.SYNC_NOTIFICATION_ID,
-							"No account available for sync.\nPlease create google account to be able perform sync.");
+		if( prefIsSyncable )
+		{
+			prefSyncUrl = settings.getString(getContext().getString(R.string.prefSyncServerUrl_Key),
+						getContext().getString(R.string.prefSyncServerUrl_Default));
+			
+			prefTimeframe = Integer.parseInt(settings.getString(getContext().getString(R.string.prefSyncRepeatTime_Key), "" + SYNC_PERIOD));
+			
+			String srtAccountName = settings.getString(getContext().getString(R.string.prefSyncAccount_Key), "");
+			prefSyncAccount = SyncAdapter.getAccountByString(srtAccountName, getContext());
+			
+			if( null == prefSyncAccount ) 
+			{
+				prefIsSyncable = false;
+				Log.e(TAG, "Wrong account provided in preferences: " + srtAccountName);
+				Tasks.placeNotification(getContext(), Tasks.SYNC_NOTIFICATION_ID, 
+						"No account available for sync.\nPlease create google account to be able perform sync.");
+			}
 		}
 	}
 
@@ -311,8 +284,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 *            string that identifies account.
 	 * @return account object if exists null otherwise
 	 */
-	private static Account getAccountByString(String accountName,
-			Context context) {
+	private static Account getAccountByString(String accountName, Context context) {
 		Account result = null;
 		Account[] accounts = AccountManager.get(context).getAccounts();
 		if (!accountName.equals("")) {
@@ -349,10 +321,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 	 * @param context
 	 *            context used to perform routines.
 	 */
-	public static void requestSync(Context context) {
-		
-		SharedPreferences sharedPref = PreferenceManager
-				.getDefaultSharedPreferences(context);
+	public static void requestSync(Context context) 
+	{
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
 		
 		if(!sharedPref.getBoolean(context.getString(R.string.prefIsSyncable_Key), false)
 				|| !isConnectionOn(context))
@@ -372,11 +343,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter implements
 							context,
 							Tasks.SYNC_NOTIFICATION_ID,
 							"No account available for sync. PLease create google account to be able perform sync.");
-		} else {
-			ContentResolver.requestSync(prefSyncAccount,
-					DouiContentProvider.AUTHORITY, new Bundle());
 			context.sendBroadcast(new Intent(SyncAdapter.ACTION_SYNC_FINISHED));
+		} else {
+			ContentResolver.requestSync(prefSyncAccount, DouiContentProvider.AUTHORITY, new Bundle());
 		}
+	}
+	
+	public static void ResetUpdateDate()
+	{
+		JsonDataExchangeAdapter.ResetUpdateDate();
 	}
 	
 	/**

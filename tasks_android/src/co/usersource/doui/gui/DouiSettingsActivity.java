@@ -106,7 +106,7 @@ public class DouiSettingsActivity extends PreferenceActivity implements
 			{
 				((DouiContentProvider)client.getLocalContentProvider()).resetDatabase();
 				client.release();
-
+				SyncAdapter.ResetUpdateDate();
 				SyncAdapter.requestSync(getApplicationContext());
 			}
 		} else if (key.equals(getString(R.string.prefSyncRepeatTime_Key))) {
