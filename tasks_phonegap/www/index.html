@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width,height = device-height,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no"/>
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<link href="dojox/mobile/themes/iphone/iphone.css" rel="stylesheet"></link>
+		<link href="css/common.css" rel="stylesheet"></link>
+		<script src="dojo/dojo.js" data-dojo-config="async:true"></script>
+		<script src="js/cordova.js"></script>
+		<script src="js/common.js"></script>
+	</head>
+	<body style="display:none;" id="body">
+		<div id="group" data-dojo-type="dojox.mobile.View" >
+			<div id="home-page" data-dojo-type="dojox/mobile/View" >
+				<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top"'><img src="images/icon.png" width=40 height=40 style="float:left;padding:5px 5px 5px 5px;"/>Tasks</h1>
+				<div data-dojo-type="dojox.mobile.ScrollableView">
+					<ul data-dojo-type="dojox/mobile/RoundRectList" id="status-list">
+						<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props="moveTo:'#',label:'Next',
+						icon:'images/arrow-right.png', rightText:''" onclick="moveToTaskListPage(this,'status','Next')"></li>
+						<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props="moveTo:'#',label:'Calendar',
+						icon:'images/calendar.png'" onclick="moveToTaskListPage(this,'status','Calendar')"></li>
+						<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props="moveTo:'#',label:'Waiting',
+						icon:'images/busy.png'" onclick="moveToTaskListPage(this,'status','Waiting')"></li>
+						<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props="moveTo:'#',label:'Done',
+						icon:'images/checkmark.png'" onclick="moveToTaskListPage(this,'status','Done')"></li>
+						<li data-dojo-type="dojox/mobile/ListItem" data-dojo-props="moveTo:'#',label:'Someday',
+						icon:'images/pushpin.png'" onclick="moveToTaskListPage(this,'status','Someday')"></li>
+					</ul>
+					<ul data-dojo-type="dojox/mobile/RoundRectList" id="home-page-category-list">
+					</ul>
+					<ul data-dojo-type="dojox/mobile/RoundRectList" id="home-page-context-list">
+					</ul>
+                    <ul data-dojo-type="dojox/mobile/TabBar" fixed="bottom" id='home-page-tab-bar'>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='moveTo:"category-manage-page",icon1:"images/book_.png",icon2:"images/book_.png"' onclick="localStorage.currentView = 'category-manage-page';"></li>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/cog_.png",icon2:"images/cog_.png"'></li>
+                    </ul>
+				</div>
+			</div>
+			
+			<div id="category-manage-page" data-dojo-type="dojox/mobile/View">
+				<h1 data-dojo-type="dojox/mobile/Heading" id="hd-category-manage" data-dojo-props='back:"Back", moveTo:"home-page",fixed:"top",onClick:function(){localStorage.currentView="home-page";}'>
+					Categories
+					<!-- <span data-dojo-type="dojox.mobile.ToolBarButton" data-dojo-props='icon:"mblDomButtonWhitePlus"' style="float:right;"></span> -->
+				</h1>
+				<div data-dojo-type="dojox.mobile.ScrollableView">
+					<ul data-dojo-type="dojox/mobile/RoundRectStoreList" id="category-list">
+
+					</ul>
+				</div>
+			</div>
+			<!-- Task List Page -->
+			<div id="task-list-page" data-dojo-type="dojox/mobile/View" >
+				<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='back:"Back", moveTo:"home-page",fixed:"top",onclick:function(){localStorage.currentView="home-page";}' id="task-list-page-title">
+				</h1>
+				<div data-dojo-type="dojox.mobile.ScrollableView">
+					<ul data-dojo-type="dojox/mobile/RoundRectStoreList" id="task-list">
+					</ul>
+                    <ul data-dojo-type="dojox/mobile/TabBar" fixed="bottom" id="plusbtn">
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/plus_.png",icon2:"images/plus_.png"' onclick="moveToAddTaskPage()"></li>
+                    </ul>
+				</div>
+			</div>
+			<!-- Add Task Page -->
+			<div id="add-task-page" data-dojo-type="dojox/mobile/View" >
+				<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='back:"Back", moveTo:"task-list-page",fixed:"top",onclick:function(){localStorage.currentView="task-list-page"}' id="add-task-page-title">
+					
+				</h1>
+				<div data-dojo-type="dojox.mobile.ScrollableView" >
+					<div data-dojo-type="dojox/mobile/RoundRect">
+								<input id="title" data-dojo-type="dojox.mobile.TextBox" placeholder="Title" style="width:100%;font-size:20px;border-width:0;" onchange="onUpdatingTask()"></input>
+								<button id="savetaskbtn" data-dojo-type="dojox.mobile.Button" style="width:100%;height:35px;" onclick="onSaveTaskClick();">Save</button>
+					</div>
+					<div data-dojo-type="dojox/mobile/RoundRect">
+						<textarea id="description" data-dojo-type="dojox/mobile/TextArea" placeHolder="Description" style="width:100%;margin-top:0px;font-size:20px;border-width:0;" onchange="onUpdatingTask()" rows=8></textarea>
+					</div>
+					<!--<div data-dojo-type="dojox/mobile/RoundRect">-->
+						<ul data-dojo-type="dojox/mobile/RoundRectList"  id="add-task-page-category" style="font-size:20px;">
+							<li data-dojo-type="dojox/mobile/ListItem" id="category" data-dojo-props="moveTo:'#',label:''" onclick="showSelectCategoryDlg()"></li>
+						</ul>
+					<!--</div>-->
+                    <ul data-dojo-type="dojox/mobile/TabBar" data-dojo-props='fixed:"bottom"' id="statusbar">
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/arrow-right_.png",icon2:"images/arrow-right_orange.png",moveTo:""' id="Next" onclick="onSelectStatus('Next')"></li>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/busy_.png",icon2:"images/busy_orange.png",moveTo:""' id="Waiting" onclick="onSelectStatus('Waiting')"></li>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/calendar_.png",icon2:"images/calendar_orange.png",moveTo:""' id="Calendar" onclick="onSelectStatus('Calendar')"></li>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/checkmark_.png",icon2:"images/checkmark_orange.png",moveTo:""' id="Done" onclick="onSelectStatus('Done')"></li>
+                        <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/pushpin_.png",icon2:"images/pushpin_orange.png",moveTo:""' id="Someday" onclick="onSelectStatus('Someday')"></li>
+                    </ul>
+				</div>
+
+			</div>
+			<!-- Category Add Dlg -->
+			<div id="category-add-dlg" data-dojo-type="dojox/mobile/SimpleDialog">
+				<div>Enter Category Name</div>
+				<div align="center">
+					<div class="row">
+						<input id="new-category-name" data-dojo-type="dojox.mobile.TextBox"></input>
+					</div>
+					<div class="row">
+						<button data-dojo-type="dojox.mobile.Button" style="width:100px;" onclick="onSaveCategoryClick('category-add-dlg')">Save</button>
+						<button data-dojo-type="dojox.mobile.Button" style="width:100px;" onclick="hideDlg('category-add-dlg',false)">Cancel</button>
+					</div>
+					<div class="row" style="width:210px" id="delete-category-checkbox">
+						<!-- <div id="remove-category-checkbox" data-dojo-type="dojox.mobile.CheckBox" style="float:left;"></div>-->
+						<input type='checkbox' id='remove-category-checkbox' data-dojo-type='dojox.mobile.CheckBox' style='float:left;'>
+						<label>Delete this Category</label> 
+					</div>
+			</div>
+			
+			<div id="alert-dlg" data-dojo-type="dojox/mobile/SimpleDialog">
+				<div id="alert-title_">Error</div>
+				<div align="center">
+					<div class="row">
+						<div id="alert-message">Please input title</div>
+					</div>
+					<div class="row">
+						<button data-dojo-type="dojox.mobile.Button" style="width:100px;" onclick="hideDlg('alert-dlg',true)">OK</button>
+					</div>
+				</div>
+			</div>
+			<!-- Select Category Dlg -->
+			<div id="category-select-dlg" data-dojo-type="dojox/mobile/SimpleDialog">
+				<div id="alert-title">Select Category</div>
+				<div align="center" id="category-select-list">
+					<div data-dojo-type="dojox/mobile/RoundRect">
+						<div data-dojo-type="dojox/mobile/FormLayout" id="category-select-list">
+						<!-- <input type="radio" data-dojo-type="dojox.mobile.RadioButton" style="float:left;"></input> -->
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<button data-dojo-type="dojox.mobile.Button" style="width:100px;" onclick="hideDlg('category-select-dlg')">Close</button>
+				</div>
+			</div>
+			<div id="tmp-page" data-dojo-type="dojox/mobile/View" >
+			</div>
+		</div>
+	</body>
+</html>
