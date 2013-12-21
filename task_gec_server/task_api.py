@@ -9,7 +9,7 @@ import endpoints
 from protorpc import remote, message_types, messages
 from task_messages import CategoryRequest, TaskRequest, TaskResponse,\
     CategoryListResponse, DeleteRequest, CategoryUpdateRequest,\
-    TaskListResponse, TaskUpdateStatusRequest
+    TaskListResponse, TaskUpdateStatusRequest, TaskUpdateRequest
 from task_messages import CategoryResponse
 from model.Category import Category
 from model.Task import Task 
@@ -211,6 +211,25 @@ class TaskApi(remote.Service):
             raise endpoints.NotFoundException('No task entity with the id "%s" exists.' % request.id)
         return result
     
+    @endpoints.method( TaskUpdateRequest,
+                       TaskResponse,
+                       path = 'task.update',
+                       http_method = 'POST',
+                       name = 'update')
+    def UpdateTask(self, request):
+        result = TaskResponse()
+        task = Task.get_by_id(request.id)
+        if task != None and task.user == self.GetUserId():
+            if task.last_updated <= request.client_copy_timestamp:
+                task.MergeFromMessage(request)
+                task.put()
+                result = task.ConvertToResponse()
+            else:
+                raise endpoints.NotFoundException("The item was updated on the outside")
+        else:
+            raise endpoints.NotFoundException('No task entity with the id "%s" exists.' % request.id)
+        return result
+
     def GetUserId(self):
         
         if endpoints.get_current_user() == None:

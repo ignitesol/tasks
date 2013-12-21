@@ -5,6 +5,7 @@ Created on 02.11.2013
 '''
 from google.appengine.ext import ndb
 from task_messages import TaskResponse
+from model.Category import Category
 
 class Task(ndb.Model):
     user = ndb.KeyProperty(kind="User", indexed=True)
@@ -22,4 +23,16 @@ class Task(ndb.Model):
                             title = self.title,
                             description = self.description,
                             last_updated = self.last_updated)
-    
+
+    def MergeFromMessage(self, message):
+        if message.status is not None:
+            self.status = message.status
+
+        if message.category is not None:
+            self.category = Category.get_by_id(message.category).key
+
+        if message.title is not None:
+            self.title = message.title
+
+        if message.description is not None:
+            self.description = message.description
