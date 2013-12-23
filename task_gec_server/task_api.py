@@ -17,6 +17,7 @@ from model.User import User
 from google.appengine.ext import ndb
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.db import BadValueError
+import Settings
 
 CLIENT_ID = '290040807346.apps.googleusercontent.com'
 
@@ -122,9 +123,12 @@ class TaskApi(remote.Service):
                        http_method = 'POST',
                        name = 'insert')
     def CreateTask(self, request):
+        CategoryKey = ndb.Key('Category', request.category)
+        if CategoryKey == None:
+            raise endpoints.NotFoundException('No category entity with the id "%s" exists.' % request.category)
         
         task = Task(status = request.status,
-                    category=ndb.Key('Category', request.category),
+                    category= CategoryKey,
                     title = request.title,
                     description = request.description,
                     user = self.GetUserId())
@@ -239,6 +243,12 @@ class TaskApi(remote.Service):
         if user == None:
             user = User(username = endpoints.get_current_user().email())
             user.put()
+            self.CreateDefaultCategories()
         return user.key
+
+    def CreateDefaultCategories(self):
+        for category in Settings.default_categories:
+            category = Category(name = category, user = self.GetUserId())
+            category.put()
 
 application = endpoints.api_server(api_services=[TaskApi], restricted=False)        

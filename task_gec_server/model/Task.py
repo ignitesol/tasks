@@ -6,6 +6,7 @@ Created on 02.11.2013
 from google.appengine.ext import ndb
 from task_messages import TaskResponse
 from model.Category import Category
+import endpoints
 
 class Task(ndb.Model):
     user = ndb.KeyProperty(kind="User", indexed=True)
@@ -16,10 +17,14 @@ class Task(ndb.Model):
     last_updated = ndb.DateTimeProperty(auto_now=True, indexed=True)
     
     def ConvertToResponse(self):
+        objCategory = self.category.get()
+        if objCategory == None:
+            raise endpoints.NotFoundException('No category entity with the id "%s" exists.' % self.category.id())
+
         return TaskResponse(id = self.key.id(),
                             user = 0,
                             status = self.status,
-                            category = long(self.category.id()),
+                            category = objCategory.name,
                             title = self.title,
                             description = self.description,
                             last_updated = self.last_updated)
