@@ -243,12 +243,12 @@ class TaskApi(remote.Service):
         if user == None:
             user = User(username = endpoints.get_current_user().email())
             user.put()
-            self.CreateDefaultCategories()
+            self.CreateDefaultCategories(user.key)
         return user.key
 
-    def CreateDefaultCategories(self):
+    def CreateDefaultCategories(self, userid):
         for category in Settings.default_categories:
-            category = Category(name = category, user = self.GetUserId())
+            category = Category(name = category, user = userid)
             category.put()
 
 application = endpoints.api_server(api_services=[TaskApi], restricted=False)        
