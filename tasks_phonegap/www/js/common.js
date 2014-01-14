@@ -1,3 +1,4 @@
+var self;
 var categoryStore;//category store
 var taskStore;//task store
 var contextlist = [];
@@ -5,12 +6,14 @@ var statuslist = ["Next","Waiting","Calendar","Done","Someday"];
 var iconarray = ["arrow-right.png","busy.png","calendar.png","checkmark.png","pushpin.png"];
 var uncategorized = "uncategorized";
 var nostatus = "no status";
+var event1 = {};
 require([
 		"dojo/ready",
 		"dijit/registry",
 		"dojox/mobile/parser",    // This mobile app uses declarative programming with fast mobile parser
 		"dojo/store/Memory",
 		"dojo/dom-construct",
+        "js/OAuthUtil",
 		"dojox/mobile",           // This is a mobile app.
 		"dojox/mobile/TabBar",
 		"dojox/mobile/ScrollableView",
@@ -24,7 +27,7 @@ require([
 		"dojox/mobile/FormLayout",
 		"dojox/mobile/TextArea",
 		"dojox/mobile/RadioButton"
-], function(ready,registry,parser,Memory,domConstruct){
+], function(ready,registry,parser,Memory,domConstruct,oAuthUtil){
 	  var flag = true;
 	  dojo.subscribe("/dojox/mobile/afterTransitionOut",
 		    function(view, moveTo, dir, transition, context, method){
@@ -38,13 +41,14 @@ require([
 		  			document.getElementById('title').focus();
 		  		}
 	  });
-	  refreshDocHeight = function(){
-	  	
-	  };
       ready(function(){
+      	oAuthUtil.openAuthWindow();
+        
       	var backButton = registry.byId("hd-category-manage").backButton;
 		if (backButton) {
 		  dojo.connect(backButton, "onClick", function() {
+          //oAuthUtil.getAccessToken(function(){oAuthUtil.init();});
+          oAuthUtil.getUserInfo();
 		  	localStorage.currentView="home-page"; 
 		  });
 		}
@@ -486,6 +490,7 @@ require([
 		  
 		  var w = registry.byId('tmp-page');
 		  w.performTransition('home-page',1,"",null);
+
 	  };
 	  localStorage.documentHeight = document.height;
 	  //alert(localStorage.documentHeight);
