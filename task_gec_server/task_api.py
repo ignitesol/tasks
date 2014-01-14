@@ -9,7 +9,7 @@ import endpoints
 from protorpc import remote, message_types, messages
 from task_messages import CategoryRequest, TaskRequest, TaskResponse,\
     CategoryListResponse, DeleteRequest, CategoryUpdateRequest,\
-    TaskListResponse, TaskUpdateStatusRequest
+    TaskListResponse, TaskUpdateStatusRequest, TaskUpdateRequest
 from task_messages import CategoryResponse
 from model.Category import Category
 from model.Task import Task 
@@ -17,6 +17,7 @@ from model.User import User
 from google.appengine.ext import ndb
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.db import BadValueError
+import Settings
 
 CLIENT_ID = '290040807346.apps.googleusercontent.com'
 
@@ -122,9 +123,12 @@ class TaskApi(remote.Service):
                        http_method = 'POST',
                        name = 'insert')
     def CreateTask(self, request):
+        CategoryKey = ndb.Key('Category', request.category)
+        if CategoryKey == None:
+            raise endpoints.NotFoundException('No category entity with the id "%s" exists.' % request.category)
         
         task = Task(status = request.status,
-                    category=ndb.Key('Category', request.category),
+                    category= CategoryKey,
                     title = request.title,
                     description = request.description,
                     user = self.GetUserId())
@@ -211,6 +215,25 @@ class TaskApi(remote.Service):
             raise endpoints.NotFoundException('No task entity with the id "%s" exists.' % request.id)
         return result
     
+    @endpoints.method( TaskUpdateRequest,
+                       TaskResponse,
+                       path = 'task.update',
+                       http_method = 'POST',
+                       name = 'update')
+    def UpdateTask(self, request):
+        result = TaskResponse()
+        task = Task.get_by_id(request.id)
+        if task != None and task.user == self.GetUserId():
+            if task.last_updated <= request.client_copy_timestamp:
+                task.MergeFromMessage(request)
+                task.put()
+                result = task.ConvertToResponse()
+            else:
+                raise endpoints.NotFoundException("The item was updated on the outside")
+        else:
+            raise endpoints.NotFoundException('No task entity with the id "%s" exists.' % request.id)
+        return result
+
     def GetUserId(self):
         
         if endpoints.get_current_user() == None:
@@ -220,6 +243,12 @@ class TaskApi(remote.Service):
         if user == None:
             user = User(username = endpoints.get_current_user().email())
             user.put()
+            self.CreateDefaultCategories(user.key)
         return user.key
+
+    def CreateDefaultCategories(self, userid):
+        for category in Settings.default_categories:
+            category = Category(name = category, user = userid)
+            category.put()
 
 application = endpoints.api_server(api_services=[TaskApi], restricted=False)        
