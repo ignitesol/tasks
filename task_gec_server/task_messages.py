@@ -37,7 +37,7 @@ class TaskResponse(messages.Message):
     id = messages.IntegerField(1)
     user = messages.IntegerField(2)
     status = messages.StringField(3)
-    category = messages.IntegerField(4)
+    category = messages.StringField(4)
     title = messages.StringField(5)
     description = messages.StringField(6)
     last_updated = message_types.DateTimeField(7)
@@ -55,3 +55,11 @@ class TaskUpdateStatusRequest(messages.Message):
 class DeleteRequest(messages.Message):
     id = messages.IntegerField(1, required=True)
     client_copy_timestamp = message_types.DateTimeField(2, required=True)
+
+class TaskUpdateRequest(messages.Message):
+    id = messages.IntegerField(1, required=True)
+    client_copy_timestamp = message_types.DateTimeField(2, required=True)
+    status = messages.StringField(3)
+    category = messages.IntegerField(4)
+    title = messages.StringField(5)
+    description = messages.StringField(6)
