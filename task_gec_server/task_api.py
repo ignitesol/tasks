@@ -19,7 +19,7 @@ from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.db import BadValueError
 import Settings
 
-CLIENT_ID = '290040807346.apps.googleusercontent.com'
+CLIENT_ID = '572251750016-qg6jih41a4t765lkakujjh97gf7hdiec.apps.googleusercontent.com'
 
 
 @endpoints.api(name="task", 
