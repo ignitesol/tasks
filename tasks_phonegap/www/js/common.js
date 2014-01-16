@@ -42,13 +42,17 @@ require([
 		  		}
 	  });
       ready(function(){
-      	oAuthUtil.openAuthWindow();
-        
+        if(oAuthUtil.isAuthorized()){
+            oAuthUtil.getCategoryList();
+        }
+        else{
+            oAuthUtil.openAuthWindow();
+        }
       	var backButton = registry.byId("hd-category-manage").backButton;
 		if (backButton) {
 		  dojo.connect(backButton, "onClick", function() {
           //oAuthUtil.getAccessToken(function(){oAuthUtil.init();});
-          oAuthUtil.getUserInfo();
+          oAuthUtil.getCategoryList();
 		  	localStorage.currentView="home-page"; 
 		  });
 		}
