@@ -26,16 +26,16 @@
       <file leaf-file-name="CategoryUtil.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/CategoryUtil.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="175" column="0" selection-start="9536" selection-end="9536" vertical-scroll-proportion="0.028037382" vertical-offset="2610" max-vertical-offset="5805">
+            <state line="51" column="131" selection-start="2744" selection-end="2744" vertical-scroll-proportion="0.33271027" vertical-offset="587" max-vertical-offset="4590">
               <folding>
-                <marker date="1397736344000" expanded="false" signature="1858:1869" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="2007:2018" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="2333:2344" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="2474:2485" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="2826:2837" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="2947:2958" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="3238:3249" placeholder="..." />
-                <marker date="1397736344000" expanded="false" signature="3351:3362" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="1858:1869" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="2007:2018" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="2333:2344" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="2474:2485" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="2826:2837" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="2947:2958" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="3238:3249" placeholder="..." />
+                <marker date="1397739775000" expanded="false" signature="3351:3362" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -44,7 +44,7 @@
       <file leaf-file-name="common.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/common.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="127" column="26" selection-start="5057" selection-end="5057" vertical-scroll-proportion="0.0" vertical-offset="1755" max-vertical-offset="8370">
+            <state line="152" column="50" selection-start="6997" selection-end="6997" vertical-scroll-proportion="0.0" vertical-offset="2102" max-vertical-offset="8370">
               <folding>
                 <marker date="1397735271000" expanded="false" signature="5866:5877" placeholder="..." />
                 <marker date="1397735271000" expanded="false" signature="6015:6026" placeholder="..." />
@@ -80,7 +80,7 @@
       <file leaf-file-name="TaskUtil.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/js/TaskUtil.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="475" column="33" selection-start="27406" selection-end="27406" vertical-scroll-proportion="0.0" vertical-offset="6930" max-vertical-offset="10845">
+            <state line="475" column="33" selection-start="27406" selection-end="27406" vertical-scroll-proportion="0.0" vertical-offset="9060" max-vertical-offset="10845">
               <folding>
                 <marker date="1397735271000" expanded="false" signature="17761:17772" placeholder="..." />
                 <marker date="1397735271000" expanded="false" signature="19003:19014" placeholder="..." />
@@ -113,8 +113,8 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/js/CategoryUtil.js" />
         <option value="$PROJECT_DIR$/js/OAuthUtil.js" />
+        <option value="$PROJECT_DIR$/js/CategoryUtil.js" />
       </list>
     </option>
   </component>
@@ -260,6 +260,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/js/TaskUtil.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="475" column="33" selection-start="27406" selection-end="27406" vertical-scroll-proportion="0.0" vertical-offset="6930" max-vertical-offset="10845">
+          <folding>
+            <marker date="1397735271000" expanded="false" signature="17761:17772" placeholder="..." />
+            <marker date="1397735271000" expanded="false" signature="19003:19014" placeholder="..." />
+            <marker date="1397735271000" expanded="false" signature="20474:20485" placeholder="..." />
+            <marker date="1397735271000" expanded="false" signature="21843:21854" placeholder="..." />
+            <marker date="1397735271000" expanded="false" signature="24071:24082" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/js/init.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="14" column="1" selection-start="441" selection-end="441" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="510">
@@ -274,22 +287,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/js/TaskUtil.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="475" column="33" selection-start="27406" selection-end="27406" vertical-scroll-proportion="0.0" vertical-offset="6930" max-vertical-offset="10845">
-          <folding>
-            <marker date="1397735271000" expanded="false" signature="17761:17772" placeholder="..." />
-            <marker date="1397735271000" expanded="false" signature="19003:19014" placeholder="..." />
-            <marker date="1397735271000" expanded="false" signature="20474:20485" placeholder="..." />
-            <marker date="1397735271000" expanded="false" signature="21843:21854" placeholder="..." />
-            <marker date="1397735271000" expanded="false" signature="24071:24082" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/common.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="127" column="26" selection-start="5057" selection-end="5057" vertical-scroll-proportion="0.0" vertical-offset="1755" max-vertical-offset="8370">
+        <state line="152" column="50" selection-start="6997" selection-end="6997" vertical-scroll-proportion="0.0" vertical-offset="2102" max-vertical-offset="8370">
           <folding>
             <marker date="1397735271000" expanded="false" signature="5866:5877" placeholder="..." />
             <marker date="1397735271000" expanded="false" signature="6015:6026" placeholder="..." />
@@ -305,16 +305,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/js/CategoryUtil.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="175" column="0" selection-start="9536" selection-end="9536" vertical-scroll-proportion="0.028037382" vertical-offset="2610" max-vertical-offset="5805">
+        <state line="51" column="131" selection-start="2744" selection-end="2744" vertical-scroll-proportion="0.33271027" vertical-offset="587" max-vertical-offset="4590">
           <folding>
-            <marker date="1397736344000" expanded="false" signature="1858:1869" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="2007:2018" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="2333:2344" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="2474:2485" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="2826:2837" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="2947:2958" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="3238:3249" placeholder="..." />
-            <marker date="1397736344000" expanded="false" signature="3351:3362" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="1858:1869" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="2007:2018" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="2333:2344" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="2474:2485" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="2826:2837" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="2947:2958" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="3238:3249" placeholder="..." />
+            <marker date="1397739775000" expanded="false" signature="3351:3362" placeholder="..." />
           </folding>
         </state>
       </provider>

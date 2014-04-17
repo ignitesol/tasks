@@ -216,45 +216,6 @@ define([
             var self = this;
             self.saveCategoryToLocalStorage();
             self.refreshCategoryList();
-            /*if(islocal)
-                oAuthUtil.getAccessToken(oAuthUtil.loadAPI(function(){
-                    var arg = {name:name};
-                    var insertCategory = gapi.client.task.category.insert(arg);
-                    insertCategory.execute(function (data){
-                        console.log(JSON.stringify(data));
-                        if(data.id){
-                            categoryStore.remove(id);
-                            categoryStore.add({id:data.id,name:data.name,local_timestamp:data.last_updated,server_timestamp:data.last_updated});
-                        }
-                        self.saveCategoryToLocalStorage();
-                        self.refreshCategoryList();
-                        //update task store and refresh task store
-                    });
-                }));
-            else
-                gapi.client.load('task', apiVersion, function(yy) {
-                    console.log("task API loaded. "+JSON.stringify(yy));
-                    console.log("task API loaded. "+gapi.client.task);
-
-                    gapi.auth.authorize({client_id: clientId,
-                            scope: 'https://www.googleapis.com/auth/userinfo.email', immediate: false},
-                        function(res)
-                        {
-                            console.log(res);
-                            var arg = {name:name};
-                            var insertCategory = gapi.client.task.category.insert(arg);
-                            insertCategory.execute(function (data){
-                                console.log(JSON.stringify(data));
-                                if(data.id){
-                                    categoryStore.remove(id);
-                                    categoryStore.add({id:data.id,name:data.name,local_timestamp:data.last_updated,server_timestamp:data.last_updated});
-                                }
-                                self.saveCategoryToLocalStorage();
-                                self.refreshCategoryList();
-                                //update task store and refresh task store
-                            });
-                        });
-                }, ROOT);*/
         },
         update: function(){
 
@@ -298,54 +259,12 @@ define([
             var self = this;
             var category = categoryStore.get(id);
             console.log(category);
-            /*if(category.local_timestamp!=category.server_timestamp){
-                categoryStore.remove(id);
-                this.createCategory(name);
-            }
-            else{*/
                 var server_timestamp = category.server_timestamp;
                 categoryStore.remove(id);
                 var newid = (new Date()).getTime();
                 categoryStore.add({id:id,name:name,local_timestamp:newid,server_timestamp:server_timestamp});
                 self.saveCategoryToLocalStorage();
                 self.refreshCategoryList();
-                /*if(islocal)
-                    oAuthUtil.getAccessToken(oAuthUtil.loadAPI(function(){
-                        var arg = {new_name:name,client_copy_timestamp:server_timestamp,id:category.id};
-                        var updateCategory = gapi.client.task.category.update(arg);
-                        updateCategory.execute(function (data){
-                            console.log(JSON.stringify(data));
-                            if(data.id){
-                                categoryStore.remove(id);
-                                categoryStore.add({id:data.id,name:data.name,local_timestamp:data.last_updated,server_timestamp:data.last_updated});
-                                self.saveCategoryToLocalStorage();
-                                self.refreshCategoryList();
-                                //update task store and refresh task store
-                            }
-                        });
-                    }));
-                else
-                    gapi.client.load('task', apiVersion, function(yy) {
-                        gapi.auth.authorize({client_id: clientId,
-                                scope: 'https://www.googleapis.com/auth/userinfo.email', immediate: false},
-                            function(res)
-                            {
-                                console.log(res);
-                                var arg = {new_name:name,client_copy_timestamp:server_timestamp,id:category.id};
-                                var updateCategory = gapi.client.task.category.update(arg);
-                                updateCategory.execute(function (data){
-                                    console.log(JSON.stringify(data));
-                                    if(data.id){
-                                        categoryStore.remove(id);
-                                        categoryStore.add({id:data.id,name:data.name,local_timestamp:data.last_updated,server_timestamp:data.last_updated});
-                                        self.saveCategoryToLocalStorage();
-                                        self.refreshCategoryList();
-                                        //update task store and refresh task store
-                                    }
-                                });
-                            });
-                    }, ROOT);*/
-            //}
         },
         read:function(){
             var self = this;
