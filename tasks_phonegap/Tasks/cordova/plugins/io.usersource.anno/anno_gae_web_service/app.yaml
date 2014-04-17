@@ -1,0 +1,22 @@
+application: annoserver-test
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+
+- url: /_ah/spi/.*
+  script: copy.copy_api
+  
+- url: /.*
+  script: main.application
+
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest
+- name: endpoints
+  version: latest
