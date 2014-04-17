@@ -1,0 +1,22 @@
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/ant-gen/com/phonegap/Tasks/R.java \
+ : /Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable/icon.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-hdpi/ic_action_next_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-hdpi/ic_action_previous_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-hdpi/ic_action_remove.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-hdpi/icon.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-ldpi/icon.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-mdpi/ic_action_next_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-mdpi/ic_action_previous_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-mdpi/ic_action_remove.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-mdpi/icon.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xhdpi/ic_action_next_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xhdpi/ic_action_previous_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xhdpi/ic_action_remove.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xhdpi/icon.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xxhdpi/ic_action_next_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xxhdpi/ic_action_previous_item.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/drawable-xxhdpi/ic_action_remove.png \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/raw/gestures \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/values/strings.xml \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/res/xml/config.xml \
+/Users/mac/Documents/leonid/TaskApp/Tasks Cordova Latest Version/Tasks/platforms/android/ant-build/AndroidManifest.xml \

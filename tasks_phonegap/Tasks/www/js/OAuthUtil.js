@@ -12,8 +12,6 @@ define([
             apiName:"task"
         },
         oauthOptions: {
-        	//client_id: '572251750016-in9jr98erjli2rqfgcpmjrc29202tv2a.apps.googleusercontent.com',//new client id
-            //client_secret: '5Yv6ZyPPK9P3HNhFIUwl8WFa',//new client secret
             client_id: '572251750016-qg6jih41a4t765lkakujjh97gf7hdiec.apps.googleusercontent.com',//new client id
             client_secret: 'UwiHI244LpTW1Wb8cHU1UXBZ',//new client secret
             redirect_uri: 'http://localhost',
@@ -97,20 +95,12 @@ define([
                         }
                         else
                         {
-                            alert("Get access token error, please login again.");
-                            /*if (self.authCallback)
-                            {
-                                self.authCallback({success: false});
-                            }*/
+                            console.log("Get access token error, please login again.");
                         }
                     }, function (err)
                     {
                         console.error("post res error: " + err);
-                        alert("Get access token error: " + err);
-                        /*if (self.authCallback)
-                        {
-                            self.authCallback({success: false});
-                        }*/
+                        console.log("Get access token error: " + err);
                     });
             }
             else if (error)
@@ -135,7 +125,7 @@ define([
                     }
                     else
                     {
-                        alert('API Load failed, '+res.error.message);
+                        console.log('API Load failed, '+res.error.message);
                     }
                 }
                 else
@@ -205,8 +195,6 @@ define([
         },
         
         getCategoryList: function(callback){
-        	//var token = gapi.auth.getToken();
-        	//console.log("token="+JSON.stringify(token));
             oAuthUtil.getAccessToken(oAuthUtil.loadAPI(function(){
                 var getCategoryList = gapi.client.task.category.list();
                 getCategoryList.execute(function (data){
@@ -214,9 +202,6 @@ define([
                         callback(data);
                 });
             }));
-            /*var arg = {outcome: 'cursor,has_more,anno_list', limit: 30};
-			var getAnnoList = gapi.client.anno.anno.list(arg);
-			getAnnoList.execute(function (data){ console.error(JSON.stringify(data)); });*/         
         }
     };
     return oAuthUtil;

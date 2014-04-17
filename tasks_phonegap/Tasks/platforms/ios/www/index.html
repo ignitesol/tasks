@@ -6,11 +6,9 @@
 		<link href="dojox/mobile/themes/iphone/iphone.css" rel="stylesheet"></link>
 		<link href="css/common.css" rel="stylesheet"></link>
 		<script src="dojo/dojo.js" data-dojo-config="async:true"></script>
-
         <script src="cordova.js"></script>
         <script src="js/init.js"></script>
         <script src="js/common.js"></script>
-        <!--<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=gce_init"></script>-->
 
 	</head>
 	<body style="display:none;" id="body">
@@ -46,7 +44,6 @@
 			<div id="category-manage-page" data-dojo-type="dojox/mobile/View">
 				<h1 data-dojo-type="dojox/mobile/Heading" id="hd-category-manage" data-dojo-props='back:"Back", moveTo:"home-page",fixed:"top",onClick:function(){localStorage.currentView="home-page";}'>
 					Categories
-					<!-- <span data-dojo-type="dojox.mobile.ToolBarButton" data-dojo-props='icon:"mblDomButtonWhitePlus"' style="float:right;"></span> -->
 				</h1>
 				<div data-dojo-type="dojox.mobile.ScrollableView">
 					<ul data-dojo-type="dojox/mobile/RoundRectStoreList" id="category-list">
@@ -82,11 +79,9 @@
                         <div data-dojo-type="dojox/mobile/RoundRect">
                             <textarea id="description" data-dojo-type="dojox/mobile/TextArea" placeHolder="Description" style="width:100%;margin-top:0px;font-size:20px;border-width:0;" onchange="onUpdatingTask()" rows=8></textarea>
                         </div>
-                        <!--<div data-dojo-type="dojox/mobile/RoundRect">-->
                             <ul data-dojo-type="dojox/mobile/RoundRectList"  id="add-task-page-category" style="font-size:20px;">
                                 <li data-dojo-type="dojox/mobile/ListItem" id="category" data-dojo-props="moveTo:'#',label:''" onclick="showSelectCategoryDlg()"></li>
                             </ul>
-                        <!--</div>-->
                     </div>
                     <ul data-dojo-type="dojox/mobile/TabBar" data-dojo-props='fixed:"bottom"' id="statusbar">
                         <li data-dojo-type="dojox/mobile/TabBarButton" data-dojo-props='icon1:"images/arrow-right_.png",icon2:"images/arrow-right_orange.png",moveTo:""' id="next" onclick="onSelectStatus('next')"></li>
@@ -110,9 +105,6 @@
 						<button data-dojo-type="dojox.mobile.Button" style="width:100px;" onclick="hideDlg('category-add-dlg',false)">Cancel</button>
 					</div>
 					<div class="row" style="width:210px" id="delete-category-checkbox">
-						<!-- <div id="remove-category-checkbox" data-dojo-type="dojox.mobile.CheckBox" style="float:left;"></div>-->
-						<!--<input type='checkbox' id='remove-category-checkbox' data-dojo-type='dojox.mobile.CheckBox' style='float:left;'>
-						<label>Delete this Category</label>-->
 					</div>
                 </div>
 			</div>
@@ -134,7 +126,6 @@
 				<div align="center" id="category-select-list">
 					<div data-dojo-type="dojox/mobile/RoundRect">
 						<div data-dojo-type="dojox/mobile/FormLayout" id="category-select-list">
-						<!-- <input type="radio" data-dojo-type="dojox.mobile.RadioButton" style="float:left;"></input> -->
 						</div>
 					</div>
 				</div>

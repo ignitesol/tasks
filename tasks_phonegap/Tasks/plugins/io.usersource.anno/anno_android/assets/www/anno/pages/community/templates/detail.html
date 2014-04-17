@@ -1,16 +1,28 @@
 <div id="detailView" class="view mblView" style="overflow-x: hidden;">
     <script type="dojo/require">at: "dojox/mvc/at"</script>
-    <div id="headingDetail" style="position: absolute;background-color: rgba(0,0,0, 0.5);left:0px;bottom:0px;z-index: 9000" data-dojo-type="dojox/mobile/Heading">
-        <table width="100%">
+    <div id="headingDetail" style="position: absolute;background-color: rgba(0,0,0, 0.5);left:0px;top:0px;z-index: 9000;color:white;height: 50px" data-dojo-type="dojox/mobile/Heading">
+        <table width="100%" height="100%">
             <tr>
-                <td width="33.3%" align="left"><span id="navBtnPrevious" class="icon-arrow-left barIconHighlight" style="width: 60px;height: 32px;float: left;padding-left: 20px;font-size: 25px;"></span></td>
-                <td width="33.3%" align="center"><span id="navBtnTray" class="icon-bubbles barIconHighlight" style="width: 50px;height: 32px;padding-top: 10px;font-size: 25px;"></span></td>
-                <td width="33.3%" align="right"><span id="navBtnNext" class="icon-arrow-right barIconHighlight" style="width: 60px;height: 30px;float: right;padding-right: 20px;font-size: 25px;"></span></td>
+                <td width="100" onclick="history.back()">
+                    <span id="navBtnBackScreenshot" class="icon-forward" data-dojo-props="back:true" data-dojo-type="dojox.mobile.ToolBarButton"></span>
+                    <img src="css/images/anno.png" width="40px">
+                </td>
+                <td align="right" width="90%">
+                    <table>
+                        <tr>
+                            <td id="tdNavBtnPrevious" width="80" align="center"><span id="navBtnPrevious" class="icon-arrow-left navBtnDisabled" style="width: 60px;height: 32px;float: left;padding-left: 20px;font-size: 25px;"></span></td>
+                            <td id="tdNavBtnScreenshot" width="80" align="center"><span id="navBtnScreenshot" class="icon-picture barIconHighlight" style="width: 50px;height: 32px;padding-top: 10px;font-size: 25px;"></span></td>
+                            <td id="tdNavBtnTray" width="80" align="center"><span id="navBtnTray" class="icon-bubbles" style="width: 50px;height: 32px;padding-top: 10px;font-size: 25px;"></span></td>
+                            <td id="tdNavBtnNext" width="80" align="center"><span id="navBtnNext" class="icon-arrow-right" style="width: 60px;height: 30px;float: right;padding-right: 20px;font-size: 25px;"></span></td>
+                        </tr>
+                    </table>
+                </td>
             </tr>
         </table>
+
     </div>
 
-    <div class="fieldset" data-dojo-type="dojox/mvc/Group"
+    <div class="fieldset" id="mvcGroupDetail" data-dojo-type="dojox/mvc/Group"
          data-dojo-props="target: at(this.loadedModels.events, 'cursor')">
         <div id="screenshotContainerDetail" class="screenshotContainerDetail">
             <img id="imgDetailScreenshot" class="imgDetailScreenshot" style="background-color: #c5ccd3;width: 100%;height: 100%" width="100%" height="100%" data-dojo-type="dojox/mvc/Output"
@@ -42,15 +54,18 @@
                     </table>
                 </div>
                 <div id="annoTextDetail" class="annoTextDetail" data-dojo-type="dojox/mvc/Output" data-dojo-props="value: at('rel:', 'annoText')"></div>
-                <div style="padding-bottom: 8px">
+                <div id="voteFlagContainer" style="padding-bottom: 8px">
                     <table width="100%"  cellpadding="0" cellspacing="0" style="padding-top: 4px;">
                         <tr>
-                            <td width="33%" align="right">
+                            <td width="33%" align="center">
                                 <span id="imgThumbsUp" class="icon-thumbs-up icoImgDeactive"></span>
                             </td>
-                            <td width="33%">&nbsp;</td>
-                            <td width="33%">
+                            <!--<td width="33%">&nbsp;</td>-->
+                            <td width="33%" align="center">
                                 <span id="imgFlag" class="icon-flag icoImgDeactive"></span>
+                            </td>
+                            <td width="33%" align="center">
+                                <span id="imgSocialSharing" class="icon-share" style="font-weight: bold;color: #000000;font-size: 30px;"></span>
                             </td>
                         </tr>
                     </table>

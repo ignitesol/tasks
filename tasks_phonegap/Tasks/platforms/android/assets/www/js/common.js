@@ -37,23 +37,14 @@ require([
 	  var flag = true;
 	  dojo.subscribe("/dojox/mobile/afterTransitionOut",
 		    function(view, moveTo, dir, transition, context, method){
-                //alert(moveTo);
 		    	var bottom = Math.abs(document.height - localStorage.documentHeight);
 		    	document.getElementById('home-page-tab-bar').style.bottom = bottom+'px';
 		    	document.getElementById('plusbtn').style.bottom = bottom+'px';
 		    	document.getElementById('statusbar').style.bottom = bottom+'px';
-		    		//var w = registry.byId('tmp-page');
-		  			//w.performTransition(moveTo,1,"",null);
                 if(moveTo.indexOf("category-manage-page")!=-1){
                     window.category_changed = true;
                 }
 		  		if(moveTo.indexOf("add-task-page")!=-1){
-                    /*document.getElementById('next').blur();
-                    document.getElementById('waiting').blur();
-                    document.getElementById('someday').blur();
-                    document.getElementById('done').blur();
-                    document.getElementById('calendar').blur();*/
-                    //setTimeout(function(){registry.byId('title').focus();},1000);
 		  		}
                 else if(moveTo.indexOf("task-list-page")!=-1){
                     console.log(localStorage.actiontype);
@@ -98,7 +89,6 @@ require([
               states[Connection.CELL]     = 'Cell generic connection';
               states[Connection.NONE]     = 'No network connection';
 
-              //alert('Connection type: ' + states[networkState]);
               if(states[networkState] != states[Connection.UNKNOWN] && states[networkState] != states[Connection.NONE]){
                   if(!window.gce_loaded){
                       var element = document.createElement("script");
@@ -113,14 +103,6 @@ require([
                   }
               }
           }
-        //synchronize();
-        /*if(oAuthUtil.isAuthorized())
-            //setInterval(categoryUtil.synchronize(),5*60*1000);
-            oAuthUtil.synchronize();
-        else
-            oAuthUtil.openAuthWindow(oAuthUtil.synchronize);*/
-        //setInterval(taskUtil.synchronize(),5*60*1000);
-        //setTimeout(taskUtil.synchronize(),5*60*000);
 
       	var backButton = registry.byId("hd-category-manage").backButton;
 		if (backButton) {
@@ -144,55 +126,12 @@ require([
     synchronize = function(){
         console.log("synchonizing...");
         categoryUtil.synchronize();
-        //setInterval(function(){categoryUtil.synchronize()},5*60*1000);
     };
       onAddCategoryClick = function(){
 			localStorage.isModify = false;
 			document.getElementById('delete-category-checkbox').style.display = 'none';
 			showDlg('category-add-dlg',true);
 	  };
-	  
-	  /***
-		init Category Store
-	  ***/
-	  /*initCategoryStore = function(){
-		  categoryStore = new Memory();
-			var jsObj = eval(localStorage.categoryData);
-			console.log(jsObj);
-			//var arr = jsObj.categories;
-			//console.log(arr);
-			if(typeof(jsObj)!='undefined'){
-				for(var i=0;i<jsObj.length;i++){
-					var tmp = new Object();
-					tmp.id = jsObj[i].id;
-					tmp.name = decodeURI(jsObj[i].name);
-                    tmp.local_timestamp = jsObj[i].local_timestamp;
-                    tmp.server_timestamp = jsObj[i].server_timestamp;
-					categoryStore.add(tmp);
-				}
-			}
-	  };*/
-	  /***
-		init Task Store
-	  ***/
-	  /*initTaskStore = function(){
-		  taskStore = new Memory();
-		  var jsObj = eval(localStorage.taskData);
-			console.log(jsObj);
-			//var arr = jsObj.categories;
-			//console.log(arr);
-			if(typeof(jsObj)!='undefined'){
-				for(var i=0;i<jsObj.length;i++){
-					var tmp = new Object();
-					tmp.id = jsObj[i].id;
-					tmp.status = jsObj[i].status;
-					tmp.category = jsObj[i].category;
-					tmp.title = decodeURI(jsObj[i].title);
-					tmp.description = decodeURI(jsObj[i].description);
-					taskStore.add(tmp);
-				}
-			}
-	  };*/
 	  /***
 		refresh category list
 		categoryid : if set select category in add task page
@@ -243,11 +182,6 @@ require([
 			for(var i = 0; i < categoryStore.data.length; i++){
 				var id = categoryStore.data[i].id;
 				var taskcount = 0;
-				/*var tmp = taskStore.query({category:categoryStore.data[i].id});
-				console.log(tmp);
-				if(tmp.total!=0){
-					taskcount = tmp.total;
-				}*/
                 var tmp = taskStore.query({category:categoryStore.data[i].id}).forEach(function(item){
                     // called for each match
                     if(item.status != "done"){
@@ -266,320 +200,6 @@ require([
 				listWidget.addChild(itemWidget);
 			}
 		  };
-        /***
-         refresh status list
-         ***/
-        /*refreshStatusList = function(){
-            document.getElementById("status-list").innerHTML = "";
-            listWidget = registry.byId("status-list");
-            for(var i = 0; i < statuslist.length; i++){
-                var taskcount = 0;
-                var tmp = taskStore.query({status:statuslist[i]});
-                if(tmp.total!=0){
-                    taskcount = tmp.total;
-                }
-                var itemWidget = new dojox.mobile.ListItem({
-                    label: statuslist[i],
-                    icon:"images/"+iconarray[i],
-                    moveTo: "#",
-                    rightText: taskcount,
-                    onClick:function( e ){moveToTaskListPage(itemWidget,'status',this.label)}
-                });
-                listWidget.addChild(itemWidget);
-            }
-        };*/
-	  /***
-		refresh task list
-	  ***/
-	  /*refreshTaskList = function(task_list_type){
-		  document.getElementById("task-list").innerHTML = "";
-		  var listWidget = registry.byId("task-list");
-		  registry.byId('plusbtn').set('style','display:block');
-		  if(task_list_type=="status"){
-			  for(var i=0;i<categoryStore.data.length;i++){
-					var tmp = taskStore.query({ category: categoryStore.data[i].id,status:localStorage.selectedStatus });
-					if(tmp.length>0){
-						var id = categoryStore.data[i].id;
-						var itemWidget = new dojox.mobile.ListItem({
-							label: "<span style='color:blue;'>"+categoryStore.data[i].name+"</span>",
-							index: categoryStore.data[i].id,
-							icon:'images/book.png',
-							//moveTo: "#",
-							onClick:function( e ){
-								
-							}
-						});
-						listWidget.addChild(itemWidget);
-					}
-					for(var j=0;j<tmp.length;j++){
-						itemWidget = new dojox.mobile.ListItem({
-							label: tmp[j].title,
-							index: tmp[j].id,
-							//icon:'images/book.png',
-							moveTo: "#",
-							onClick:function( e ){
-								moveToEditTaskPage(this.index,localStorage.selectedStatus);
-							}
-						});
-						listWidget.addChild(itemWidget);
-					}
-			  }
-			  var tmp = taskStore.query({ category: "",status:localStorage.selectedStatus });
-			  if(tmp.length>0){
-				var itemWidget = new dojox.mobile.ListItem({
-					label: "<span style='color:blue;'>"+uncategorized+"</span>",
-					//index: categoryStore.data[i].id,
-					icon:'images/book.png',
-					//moveTo: "#",
-					onClick:function( e ){
-						
-					}
-				});
-				listWidget.addChild(itemWidget);
-				for(var j=0;j<tmp.length;j++){
-					itemWidget = new dojox.mobile.ListItem({
-						label: tmp[j].title,
-						index: tmp[j].id,
-						//icon:'images/book.png',
-						moveTo: "#",
-						onClick:function( e ){
-							moveToEditTaskPage(this.index,localStorage.selectedStatus);
-						}
-					});
-					listWidget.addChild(itemWidget);
-				}
-			  }
-		  }
-		  else if(task_list_type=="category"){
-			 for (var i=0;i<statuslist.length ;i++ ){
-				var tmp = taskStore.query({ category: localStorage.selectedCategoryID,status:statuslist[i] });
-				if(tmp.length>0){
-					var itemWidget = new dojox.mobile.ListItem({
-						label: "<span style='color:blue;'>"+statuslist[i]+"</span>",
-						index: statuslist[i],
-						icon:'images/'+iconarray[i],
-						//moveTo: "#",
-						onClick:function( e ){}
-					});
-					listWidget.addChild(itemWidget);
-				}
-				for(var j=0;j<tmp.length;j++){
-					itemWidget = new dojox.mobile.ListItem({
-						label: tmp[j].title,
-						index: tmp[j].id,
-						status: statuslist[i],
-						//icon:'images/book.png',
-						moveTo: "#",
-						onClick:function( e ){
-							moveToEditTaskPage(this.index,this.status);
-						}
-					});
-					listWidget.addChild(itemWidget);
-				}
-			 }
-
-			 var tmp = taskStore.query({ category: localStorage.selectedCategoryID,status:"" });
-			  if(tmp.length>0){
-				var itemWidget = new dojox.mobile.ListItem({
-					label: "<span style='color:blue;'>"+nostatus+"</span>",
-					//index: categoryStore.data[i].id,
-					icon:'images/book.png',
-					//moveTo: "#",
-					onClick:function( e ){
-						
-					}
-				});
-				listWidget.addChild(itemWidget);
-				for(var j=0;j<tmp.length;j++){
-					itemWidget = new dojox.mobile.ListItem({
-						label: tmp[j].title,
-						index: tmp[j].id,
-						//icon:'images/book.png',
-						moveTo: "#",
-						onClick:function( e ){
-							moveToEditTaskPage(this.index);
-						}
-					});
-					listWidget.addChild(itemWidget);
-				}
-			  }
-		  }
-		  else if(task_list_type=="context"){
-			  registry.byId('plusbtn').set('style','display:none');
-			  var tasklist = [];
-			  for(var i=0;i<taskStore.data.length;i++){
-				  var title = taskStore.data[i].title;
-				  var description = taskStore.data[i].description;
-				  if(title.indexOf(localStorage.selectedContext)!=-1 || description.indexOf(localStorage.selectedContext)!=-1){
-					  tasklist.push(taskStore.data[i]);
-				  }
-			  }
-			  var statuslist_ = [];
-			  for(var i=0;i<statuslist.length;i++){
-				  var flag = false;
-				  for(var j=0;j<tasklist.length;j++){
-					  if(tasklist[j].status==statuslist[i]){
-						  flag = true;
-					  }
-				  }
-				  if(flag==true){
-					statuslist_.push(statuslist[i]);
-				  }
-			  }
-			  for(var j=0;j<statuslist_.length;j++){
-				var itemWidget = new dojox.mobile.ListItem({
-					label: "<span style='color:blue;'>"+statuslist_[j]+"</span>",
-					icon:'images/book.png',
-					moveTo: "",
-					onClick:function( e ){}
-				});
-				listWidget.addChild(itemWidget);
-				///
-				for(var i=0;i<tasklist.length;i++){
-				  var tmp = tasklist[i];
-				  if(tmp.status == statuslist_[j]){
-					  itemWidget = new dojox.mobile.ListItem({
-							label: tmp.title,
-							index: tmp.id,
-							status: tmp.status,
-							//icon:'images/book.png',
-							moveTo: "#",
-							onClick:function( e ){
-								moveToEditTaskPage(this.index,this.status);
-							}
-					  });
-					  listWidget.addChild(itemWidget);
-				  }
-				}
-				///
-			  }
-		  }
-	  };
-*/
-	  /***
-		get context 
-	  ***/
-	  /*getContextList = function(){
-		  document.getElementById("home-page-context-list").innerHTML = "";
-		  contextlist = [];
-		  for(var i=0;i<taskStore.data.length;i++){
-			  var tmp = taskStore.data[i].title;
-			  var split = tmp.split(" ");
-			  for(var j=0;j<split.length;j++){
-				  if(split[j].indexOf("@")!=-1){
-					  var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-					  var split_split = tmp_tmp.split("@");
-					  var k = 0;
-					  for(var ii=0;ii<split_split.length;ii++){
-						  for(k=0;k<contextlist.length;k++){
-							  if(contextlist[k]=="@"+split_split[ii]){
-								  break;
-							  }
-						  }
-						  if(k==contextlist.length){
-							  if(split_split[ii]!="")
-								  contextlist.push("@"+split_split[ii]);
-						  }
-					  }
-				  }
-			  }
-
-			  tmp = taskStore.data[i].description;
-			  var split = tmp.split(" ");
-			  for(var j=0;j<split.length;j++){
-				  if(split[j].indexOf("@")!=-1){
-					  var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-					  console.log(tmp_tmp);
-					  var split_split = tmp_tmp.split("@");
-					  var k = 0;
-					  for(var ii=0;ii<split_split.length;ii++){
-						  for(k=0;k<contextlist.length;k++){
-							  if(contextlist[k]=="@"+split_split[ii]){
-								  break;
-							  }
-						  }
-						  if(k==contextlist.length){
-							  if(split_split[ii]!="")
-								  contextlist.push("@"+split_split[ii]);
-						  }
-					  }
-				  }
-			  }
-		  }
-		  console.log(contextlist);
-		  
-		  listWidget = registry.byId("home-page-context-list");
-			for(var i_ = 0; i_ < contextlist.length; i_++){
-				var taskcount = 0;
-				///get task count
-				var taskStoreIndex = -1;
-				for(var i=0;i<taskStore.data.length;i++){
-					taskStoreIndex = -1;
-					  var tmp = taskStore.data[i].title;
-					  var split = tmp.split(" ");
-					  for(var j=0;j<split.length;j++){
-						  if(split[j].indexOf("@")!=-1){
-							  var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-							  var split_split = tmp_tmp.split("@");
-							  var k = 0;
-							  for(var ii=0;ii<split_split.length;ii++){
-								  *//*for(k=0;k<contextlist.length;k++){
-									  if(contextlist[k]=="@"+split_split[ii]){
-										  taskcount++;
-									  }
-								  }*//*
-								  *//*if(k==contextlist.length){
-									  if(split_split[ii]!="")
-										  taskcount++;
-								  }*//*
-								  if(contextlist[i_]=="@"+split_split[ii]){
-									  if(taskStoreIndex==-1){
-										  taskStoreIndex=i;
-										  taskcount++;
-									  }
-								  }
-							  }
-						  }
-					  }
-						
-					  tmp = taskStore.data[i].description;
-					  var split = tmp.split(" ");
-					  for(var j=0;j<split.length;j++){
-						  if(split[j].indexOf("@")!=-1){
-							  var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-							  var split_split = tmp_tmp.split("@");
-							  var k = 0;
-							  for(var ii=0;ii<split_split.length;ii++){
-								  *//*for(k=0;k<contextlist.length;k++){
-									  if(contextlist[k]=="@"+split_split[ii]){
-										  taskcount++;
-									  }
-								  }*//*
-								  *//*if(k==contextlist.length){
-									  if(split_split[ii]!="")
-										  taskcount++;
-								  }*//*
-								  if(contextlist[i_]=="@"+split_split[ii]){
-									  if(taskStoreIndex==-1){
-										  taskStoreIndex=i;
-										  taskcount++;
-									  }
-								  }
-							  }
-						  }
-					  }
-				  }
-				///
-				var itemWidget = new dojox.mobile.ListItem({
-					label: contextlist[i_].substring(1,contextlist[i_].length),
-					icon:"images/drawer.png",
-					moveTo: "#",
-					rightText: taskcount,
-					onClick:function( e ){moveToTaskListPage(itemWidget,'context',this.label)}
-				});
-				listWidget.addChild(itemWidget);
-			}
-	  }*/
 	  /***
 		  initialize
 	  ***/
@@ -605,7 +225,6 @@ require([
 
 	  };
 	  localStorage.documentHeight = document.height;
-	  //alert(localStorage.documentHeight);
 	  initialize();
 	  
 	  //show dialog
@@ -729,7 +348,6 @@ require([
 				else{
 					var title = categoryStore.query({ id: categoryid })[0].name;
 					registry.byId('add-task-page-title').set('label',title);
-					//registry.byId('task-list-page-title').set('label',title);
 				}
 		  }
 		  else{
@@ -743,27 +361,10 @@ require([
 	  ***/
 	  onSelectStatus = function(status){
 		  if(localStorage.taskListType=="status"){
-			/*if(localStorage.isEditTask==true){
-				registry.byId('add-task-page-title').set('label',localStorage.selectedStatus);
-			}
-			else{
-				registry.byId('add-task-page-title').set('label',status);
-				for (var i=0; i<statuslist.length; i++){
-					registry.byId(statuslist[i]).set("selected",false);
-				}
-				registry.byId(localStorage.selectedStatus).set("selected",true);
-			}
-			//registry.byId('task-list-page-title').set('label',status);*/
-			//registry.byId('add-task-page-title').set('label',localStorage.selectedStatus);
-			/*for (var i=0; i<statuslist.length; i++){
-				registry.byId(statuslist[i]).set('selected',false);
-			}
-			setTimeout(function(){registry.byId(localStorage.selectedStatus).set("selected",true)},100);*/
 			registry.byId('add-task-page-title').set('label',status);
 			onUpdatingTask(status);
 		  }
 		  else if(localStorage.taskListType=="category"||localStorage.taskListType=="context"){
-            //registry.byId('add-task-page-title').set('label',status);
 			localStorage.selectedStatus_ = status;
 			onUpdatingTask();	
 		  }
@@ -776,7 +377,6 @@ require([
 	  onUpdatingTask = function(status,categoryid){
 		  if(localStorage.isEditTask=="true"){
 			  if(registry.byId('title').get("value")==""){
-					//showDlg('alert-dlg');
                   if(typeof(status)!='undefined')
                       localStorage.selectedStatus_ = status;
                   if(typeof(categoryid)!='undefined')
@@ -784,23 +384,6 @@ require([
                   return;
 			  }
               taskUtil.updateTask(localStorage.selectedTaskID,status,categoryid);
-			  /*taskStore.remove(localStorage.selectedTaskID);
-			  if(localStorage.taskListType=="status"){
-				  if(typeof(status)=='undefined'||status==''){
-					taskStore.add({id:localStorage.selectedTaskID,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID_,status:localStorage.selectedStatus});
-				  }
-				  else
-					taskStore.add({id:localStorage.selectedTaskID,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID_,status:status});
-			  }
-			  else if(localStorage.taskListType=="category"){
-				  if(typeof(categoryid)=='undefined')
-					  taskStore.add({id:localStorage.selectedTaskID,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID,status:localStorage.selectedStatus_});
-				  else
-					  taskStore.add({id:localStorage.selectedTaskID,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:categoryid,status:localStorage.selectedStatus_});
-			  }
-			  else if(localStorage.taskListType=="context"){
-				  taskStore.add({id:localStorage.selectedTaskID,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID_,status:localStorage.selectedStatus_});
-			  }*/
 		  }
 		  else{
 			  if(registry.byId('title').get("value")==""){
@@ -812,53 +395,21 @@ require([
 			  }
 			  onSaveTaskClick();
 		  }
-		  //taskUtil.saveTaskToLocalStorage();
 	  }
 	  /***
 		save task when not editing...
 	  ***/
 	  onSaveTaskClick = function(){
-		  /*if(registry.byId('title').get("value")==""){
-				
-			return;
-		  }
-		  if(localStorage.isEditTask=="true")
-				taskStore.remove(localStorage.selectedTaskID);*/
-
-          /*var id = (new Date()).getTime();
-		  if(localStorage.taskListType=="status"){
-			  taskStore.add({id:id,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID_,status:localStorage.selectedStatus_});
-		  }
-		  else if(localStorage.taskListType=="category"){
-			  taskStore.add({id:id,title:registry.byId('title').get('value'),description:registry.byId('description').get('value'),category:localStorage.selectedCategoryID_,status:localStorage.selectedStatus_});
-		  }*/
           taskUtil.createTask(registry.byId('title').get('value'),registry.byId('description').get('value'),localStorage.selectedCategoryID_,localStorage.selectedStatus_);
-
-
 		  localStorage.isEditTask=true;
-		  //var w = registry.byId('add-task-page');
-		 // w.performTransition('#task-list-page',1,"",null);
 	  };
-	  /***
-		Save Task to local Storage
-	  ***/
-	  /*saveTaskToLocalStorage = function(){
-		  var taskstr = "{tasks:[";
-		  for(var i=0;i<taskStore.data.length;i++){
-			  taskstr +="{'id':'"+taskStore.data[i].id+"','status':'"+taskStore.data[i].status+"','category':'"+taskStore.data[i].category+"','title':'"+encodeURI(taskStore.data[i].title)+"','description':'"+encodeURI(taskStore.data[i].description)+"'}";
-			  if(i!=(taskStore.data.length-1))
-				  taskstr += ",";
-		  }
-		  taskstr += "]}";
-		  localStorage.taskData = taskstr;
-	  };*/
+
 	  /***
 		move to add task page
 	  ***/
 	  moveToAddTaskPage = function(){
 	  	  localStorage.currentView = "add-task-page";
 		  if(localStorage.taskListType=="category"){
-			  //registry.byId("add-task-page-category").set('style','display:none;');
               registry.byId("add-task-page-category").set('style','display:block;');
 		  }
 		  else{
@@ -888,7 +439,6 @@ require([
 		  var w = registry.byId('task-list-page');
 		  w.performTransition('#add-task-page',1,"",null);
 		  document.getElementById('description').blur();
-		  //document.getElementById('title').focus();
 	  };
 	  /***
 		move to edit task page
@@ -897,7 +447,6 @@ require([
 	  moveToEditTaskPage = function(taskid,status){
 	      localStorage.currentView = "add-task-page";
 		  registry.byId('savetaskbtn').set("style","display:none;");
-		  //localStorage.selectedStatus = "";
 
 		  for(var i=0;i<statuslist.length;i++)
 				  registry.byId(statuslist[i]).set('selected',false);
@@ -920,7 +469,6 @@ require([
 			  registry.byId('category').set("label","#"+uncategorized);
 		  }
 		  if(localStorage.taskListType=="category"){
-			  //registry.byId("add-task-page-category").set('style','display:none;');
 		  }
 		  else{
 			  registry.byId("add-task-page-category").set('style','display:block;');
@@ -940,41 +488,17 @@ require([
 				return;
 			}
 			if(localStorage.isModify=="true"){
-				/*categoryStore.remove(localStorage.selectedCategoryID);
-				if(!document.getElementById('remove-category-checkbox').checked){
-					categoryStore.add({id:localStorage.selectedCategoryID,name:registry.byId("new-category-name").get("value")});
-				}*/
                 if(document.getElementById('remove-category-checkbox').checked)
                     categoryUtil.removeCategory(localStorage.selectedCategoryID);
                 else
                     categoryUtil.updateCategory(localStorage.selectedCategoryID,registry.byId("new-category-name").get("value"));
 			}
 			else{
-                //var id = (new Date()).getTime();
-				//categoryStore.add({id:id,name:registry.byId("new-category-name").get("value")});
                 categoryUtil.createCategory(registry.byId("new-category-name").get("value"));
 			}
-            //categoryUtil.saveCategoryToLocalStorage();
-			//categoryUtil.refreshCategoryList();
 			hideDlg(dlg,true);
 	  };
 
-	  /***
-		Save Category to local Storage
-	  ***/
-	  /*saveCategoryToLocalStorage = function(){
-		  var categorystr = "{categories:[";
-		  for(var i=0;i<categoryStore.data.length;i++){
-			  categorystr +="{'id':'"+categoryStore.data[i].id+"','name':'"+encodeURI(categoryStore.data[i].name)+"'}";
-			  if(i!=(categoryStore.data.length-1))
-				  categorystr += ",";
-		  }
-		  categorystr += "]}";
-		  localStorage.categoryData = categorystr;
-	  };*/
-	  /***
-		on cancel click at category manage page
-	  ***/
 	  onCancelCategoryClick = function(dlg){
 		  hideDlg(dlg);
 	  };

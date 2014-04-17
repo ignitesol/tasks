@@ -83,11 +83,14 @@ define([
             for(var i = 0; i < categoryStore.data.length; i++){
                 var id = categoryStore.data[i].id;
                 var taskcount = 0;
-                var tmp = taskStore.query({category:categoryStore.data[i].id});
+                var tmp = taskStore.query({category:categoryStore.data[i].id}).forEach(function(item){
+                    // called for each match
+                    if(item.status != "done"){
+                        taskcount ++;
+                    }
+                });
                 console.log(tmp);
-                if(tmp.total!=0){
-                    taskcount = tmp.total;
-                }
+
                 var itemWidget = new dojox.mobile.ListItem({
                     label: categoryStore.data[i].name,
                     index: categoryStore.data[i].id,

@@ -7,6 +7,7 @@ import json
 import logging
 import base64
 from model.user import User
+from google.appengine.api import search
 
 
 def get_endpoints_current_user(raise_unauthorized=True):
@@ -138,6 +139,46 @@ def get_credential(headers):
     if len(credential_pair) != 2:
         raise endpoints.UnauthorizedException("No permission.")
     return credential_pair
+
+
+def put_search_document(doc):
+    # index this document.
+    try:
+        index = search.Index(name="anno_index")
+        index.put(doc)
+    except search.Error:
+        logging.exception('Put document failed.')
+
+
+def delete_all_in_index(index_name):
+    """Delete all the docs in the given index."""
+    doc_index = search.Index(name=index_name)
+
+    # looping because get_range by default returns up to 100 documents at a time
+    while True:
+        # Get a list of documents populating only the doc_id field and extract the ids.
+        document_ids = [document.doc_id
+                        for document in doc_index.get_range(ids_only=True)]
+        if not document_ids:
+            break
+        # Delete the documents for the given ids from the Index.
+        doc_index.delete(document_ids)
+
+
+def tokenize_string(string_value):
+    """find all words in the given string value"""
+    return re.findall(r'(\w+)', string_value)
+
+
+def is_empty_string(string_value):
+    """
+    Checks if the given string value is empty.
+    """
+    if string_value is None:
+        return True
+    if re.match(r'\s+', string_value) is not None:
+        return True
+    return False
 
 """
 annoserver:

@@ -11,6 +11,7 @@ define([
 {
     var categoryUtil = {
         synchronize: function(){
+            console.log("Synchronizing category store...");
             localStorage.args = "";
             localStorage.actiontype = "";
         	var self = this;
@@ -90,9 +91,6 @@ define([
                     }
                 });
                 console.log(tmp);
-                /*if(tmp.total!=0){
-                    taskcount = tmp.total;
-                }*/
 
                 var itemWidget = new dojox.mobile.ListItem({
                     label: categoryStore.data[i].name,
