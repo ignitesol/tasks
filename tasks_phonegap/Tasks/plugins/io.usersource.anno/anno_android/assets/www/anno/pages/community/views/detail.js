@@ -16,12 +16,11 @@ define([
     "dojox/css3/transit",
     "dojo/store/Memory",
     "dojox/mvc/getStateful",
-    "dojox/mvc/at",
     "anno/draw/Surface",
     "anno/common/Util",
     "anno/common/OAuthUtil"
 ],
-    function (arrayUtil, baseFX, dom, domClass, domGeom, domStyle, dojoJson, query, lang, connect, win, has, sniff, registry, transit, Memory, getStateful, at, Surface, annoUtil, OAuthUtil)
+    function (arrayUtil, baseFX, dom, domClass, domGeom, domStyle, dojoJson, query, lang, connect, win, has, sniff, registry, transit, Memory, getStateful, Surface, annoUtil, OAuthUtil)
     {
         var _connectResults = [],
             eventsModel = null,
@@ -31,14 +30,13 @@ define([
         var app = null,
             savingVote = false,
             savingFlag = false,
-            localScreenshotPath = "",
             screenshotMargin = 0;
         var annoTooltipY,
             goingNextRecord = null,
             loadingDetailData = false,
             loadingImage = false,
             trayBarHeight = 30,
-            navBarHeight = 50,
+            navBarHeight = 43,
             trayScreenHeight = 0,
             borderWidth;
 
@@ -49,14 +47,13 @@ define([
         var wipeIn = function(args)
         {
             var node = args.node = dom.byId(args.node);
-            var currentHeight = domStyle.get(node, "height");
-            node.style.WebkitTransform = "translateY("+navBarHeight+"px)";
+            node.style.WebkitTransform = "translateY(0px)";
         };
 
         var wipeOut = function(args){
             var node = args.node = dom.byId(args.node);
-            var viewPoint = win.getBox();
-            node.style.WebkitTransform = "translateY(-"+(viewPoint.h-6)+"px)";
+            var currentHeight = domStyle.get(node, "height");
+            node.style.WebkitTransform = "translateY("+currentHeight+"px)";
 
             window.setTimeout(function(){
                 node.style.display = "none";
@@ -72,8 +69,8 @@ define([
             domStyle.set("textDataAreaContainer", "width", (viewPoint.w-6)+"px");
             domStyle.set("annoTextDetail", "width", (viewPoint.w-6-6-10-6)+"px");
 
-            domStyle.set("textDataAreaContainer", "height", (h-40-navBarHeight)+"px");
-            dom.byId("textDataAreaContainer").style.WebkitTransform = "translateY(-"+(h)+"px)";
+            domStyle.set("textDataAreaContainer", "height", (h-40)+"px");
+            dom.byId("textDataAreaContainer").style.WebkitTransform = "translateY("+(h-40)+"px)";
             trayScreenHeight = h-40;
 
             domStyle.set("annoCommentsContainer", "height", (h-76-30-trayBarHeight)+"px");//104
@@ -269,15 +266,7 @@ define([
 
                 if (idx == 0)
                 {
-                    if (eventsModel.model.length>1)
-                    {
-                        domClass.remove("navBtnNext", "navBtnDisabled");
-                    }
-                    else
-                    {
-                        domClass.add("navBtnNext", "navBtnDisabled");
-                    }
-
+                    domClass.remove("navBtnNext", "navBtnDisabled");
                     domClass.add("navBtnPrevious", "navBtnDisabled");
                 }
                 else if (idx == (eventsModel.model.length-1))
@@ -412,9 +401,8 @@ define([
         {
             if (textDataAreaShown) return;
 
+            domStyle.set("imgDetailScreenshot", "opacity", '0.4');
             domStyle.set("textDataAreaContainer", "display", "");
-            domClass.remove("navBtnScreenshot", "barIconHighlight");
-            domClass.add("navBtnTray", "barIconHighlight");
 
             window.setTimeout(function(){
                 wipeIn({
@@ -425,9 +413,8 @@ define([
             window.setTimeout(function(){
                 adjustAnnoCommentSize();
                 textDataAreaShown = true;
+                domStyle.set("headingDetail", "display", 'none');
                 domStyle.set("bottomPlaceholder", "display", '');
-                domStyle.set("imgDetailScreenshot", "opacity", '0.4');
-
             }, 600);
 
             document.addEventListener("backbutton", handleBackButton, false);
@@ -451,8 +438,7 @@ define([
             textDataAreaShown = false;
 
             domStyle.set("bottomPlaceholder", "display", 'none');
-            domClass.add("navBtnScreenshot", "barIconHighlight");
-            domClass.remove("navBtnTray", "barIconHighlight");
+            domStyle.set("headingDetail", "display", '');
             document.removeEventListener("backbutton", handleBackButton, false);
         };
 
@@ -541,12 +527,6 @@ define([
             });
         };
 
-        var showLocalAnno = function()
-        {
-            var currentAnno = eventsModel.cursor;
-            dom.byId('imgDetailScreenshot').src = localScreenshotPath+"/"+currentAnno.screenshot_key;
-        };
-
         var loadDetailData = function(cursor)
         {
             if (loadingDetailData||loadingImage) return;
@@ -568,21 +548,6 @@ define([
             else
             {
                 id = eventsModel.cursor.id;
-            }
-
-            if (id == null)
-            {
-                loadingDetailData = false;
-                domStyle.set('voteFlagContainer', 'visibility', 'hidden');
-                domStyle.set('addCommentContainer', 'visibility', 'hidden');
-                showLocalAnno();
-                setDetailsContext(cursor);
-                return;
-            }
-            else
-            {
-                domStyle.set('voteFlagContainer', 'visibility', 'visible');
-                domStyle.set('addCommentContainer', 'visibility', 'visible');
             }
 
             loadingImage = true;
@@ -845,7 +810,7 @@ define([
                 var endX1 = e.touches[0].pageX;
                 var endY1 = e.touches[0].pageY;
 
-                if (Math.abs(startX1-endX1) <10 &&(startY1-endY1)>=6)
+                if (Math.abs(startX1-endX1) <10 &&(endY1-startY1)>=6)
                 {
                     dojo.stopEvent(e);
                     hideTextData();
@@ -857,45 +822,24 @@ define([
             }
         };
 
-        var doSocialShare = function()
-        {
-            var id = eventsModel.cursor.id, annoText = eventsModel.cursor.annoText;
-            var subject = "Suggestion for "+eventsModel.cursor.app + ": ";
-
-            if (annoText.length >25)
-            {
-                annoText = annoText.substr(0, 25) + "...";
-            }
-
-            subject = subject + annoText;
-
-            window.plugins.socialsharing.share(
-                '',
-                subject,
-                null,
-                annoUtil.annoPermaLinkBaseUrl+id);
-        };
-
         var startX, startY, startX1, startY1;
         return {
             // simple view init
             init:function ()
             {
                 eventsModel = this.loadedModels.events;
-                localScreenshotPath = annoUtil.getAnnoScreenshotPath();
 
                 _connectResults.push(connect.connect(window, has("ios") ? "orientationchange" : "resize", this, function (e)
                 {
                     //adjustSize();
                 }));
 
-                _connectResults.push(connect.connect(dom.byId('tdNavBtnNext'), "click", function ()
+                _connectResults.push(connect.connect(dom.byId('navBtnNext'), "click", function ()
                 {
-                    hideTextData();
                     goNextRecord();
                 }));
 
-                _connectResults.push(connect.connect(dom.byId('tdNavBtnTray'), "click", function ()
+                _connectResults.push(connect.connect(dom.byId('navBtnTray'), "click", function ()
                 {
                     if (textDataAreaShown)
                     {
@@ -905,17 +849,6 @@ define([
                     {
                         showTextData();
                     }
-                }));
-
-                _connectResults.push(connect.connect(dom.byId('tdNavBtnScreenshot'), "click", function ()
-                {
-                    hideTextData();
-                }));
-
-                _connectResults.push(connect.connect(dom.byId('tdNavBtnPrevious'), "click", function ()
-                {
-                    hideTextData();
-                    goPreviousRecord();
                 }));
 
                 _connectResults.push(connect.connect(dom.byId('appNameTextBox'), "keydown", function (e)
@@ -934,6 +867,11 @@ define([
                     domStyle.set('appNameTextBox', {display: 'none'});
                     domStyle.set('lightCover', 'display', 'none');
                     domStyle.set('editAppNameImg', 'display', '');
+                }));
+
+                _connectResults.push(connect.connect(dom.byId('navBtnPrevious'), "click", function ()
+                {
+                    goPreviousRecord();
                 }));
 
                 _connectResults.push(connect.connect(dom.byId('addCommentImg'), "click", function ()
@@ -983,11 +921,6 @@ define([
                     {
                         saveFlag('add_flag');
                     }
-                }));
-
-                _connectResults.push(connect.connect(dom.byId('imgSocialSharing'), "click", function ()
-                {
-                    doSocialShare();
                 }));
 
                 _connectResults.push(connect.connect(dom.byId('addCommentTextBox'), "focus", function ()
@@ -1131,18 +1064,6 @@ define([
                 var cursor = this.params["cursor"];
                 if (this.params["cursor"] != null)
                 {
-                    var source = this.params["source"];
-                    if (source == "mystuff")
-                    {
-                        eventsModel = this.loadedModels.mystuff;
-                        registry.byId("mvcGroupDetail").set('target',at(this.loadedModels.mystuff, 'cursor'));
-                    }
-                    else
-                    {
-                        eventsModel = this.loadedModels.events;
-                        registry.byId("mvcGroupDetail").set('target',at(this.loadedModels.events, 'cursor'));
-                    }
-
                     window.setTimeout(function(){
                         loadDetailData(cursor);
                     }, 50);
@@ -1151,8 +1072,6 @@ define([
 
                 textDataAreaShown = false;
                 domStyle.set("headingDetail", "display", '');
-                domClass.add("navBtnScreenshot", "barIconHighlight");
-                domClass.remove("navBtnTray", "barIconHighlight");
             },
             beforeDeactivate: function()
             {

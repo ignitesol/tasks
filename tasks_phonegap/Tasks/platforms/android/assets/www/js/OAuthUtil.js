@@ -106,7 +106,7 @@ define([
             else if (error)
             {
                 console.error("error: " + error[1]);
-                console.log("Auth error: " + error[1]);
+                alert("Auth error: " + error[1]);
                 if (self.authCallback)
                 {
                     self.authCallback({success: false});
@@ -181,7 +181,7 @@ define([
                 }, function (err)
                 {
                     console.error("refresh access token error: " + err);
-                    console.log("refresh access token error: " + err);
+                    alert("refresh access token error: " + err);
                     if (errorCallback)
                     {
                         errorCallback();

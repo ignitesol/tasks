@@ -88,11 +88,25 @@ define([
                                 if(data.id){
                                     taskStore.remove(taskStore.data[index].id);
                                     var category = "";
+                                    /*for(var i=0;i<categoryStore.data.length;i++)
+                                    if(data.category == categoryStore.data[i].name)
+                                        category = categoryStore.data[i].id;*/
                                     category = data.category;
                                     taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                     localStorage.selectedTaskID = data.id;
+                                    /*self.refreshTaskList(localStorage.taskListType);
+                                    refreshCategoryList(localStorage.selectedCategoryID_);
+                                    self.refreshStatusList();
+                                    self.getContextList();
+                                    self.saveTaskToLocalStorage();*/
                                 }
                                 else{
+                                    //self.updateTask(localStorage.selectedTaskID);
+                                    /*self.refreshTaskList(localStorage.taskListType);
+                                    refreshCategoryList(localStorage.selectedCategoryID_);
+                                    self.refreshStatusList();
+                                    self.getContextList();
+                                    self.saveTaskToLocalStorage();*/
                                 }
                             });
                         }));
@@ -113,6 +127,9 @@ define([
                                         if(data.id){
                                             taskStore.remove(taskStore.data[index].id);
                                             var category = "";
+                                            /*for(var i=0;i<categoryStore.data.length;i++)
+                                            if(data.category == categoryStore.data[i].name)
+                                                category = categoryStore.data[i].id;*/
                                             category = data.category;
                                             taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                             localStorage.selectedTaskID = data.id;
@@ -155,6 +172,9 @@ define([
                             if(data.id){
                                 taskStore.remove(id);
                                 var category = "";
+                                /*for(var i=0;i<categoryStore.data.length;i++)
+                                 if(data.category == categoryStore.data[i].name)
+                                 category = categoryStore.data[i].id;*/
                                 category = data.category;
                                 taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                 localStorage.selectedTaskID = data.id;
@@ -191,6 +211,9 @@ define([
                                     if(data.id){
                                         taskStore.remove(id);
                                         var category = "";
+                                        /*for(var i=0;i<categoryStore.data.length;i++)
+                                         if(data.category == categoryStore.data[i].name)
+                                         category = categoryStore.data[i].id;*/
                                         category = data.category;
                                         taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                         localStorage.selectedTaskID = data.id;
@@ -218,8 +241,15 @@ define([
             var self = this;
             var server_timestamp = taskStore.get(id).server_timestamp;
             var task = taskStore.get(id);
+            /*if(task.local_timestamp!=task.server_timestamp){
+                taskStore.remove(id);
+                self.createTask(task.title,task.description,task.category,task.status);
+                self.createTaskToServer();
+            }
+            else{*/
 
                 taskStore.remove(id);
+                //var arg = {id:id,title:title,description:encodeURI(description),category:category,status:status,client_copy_timestamp:server_timestamp};
                 var arg = {};
                 if(localStorage.taskListType=="status"){
                     if(typeof(status)=='undefined'||status==''){
@@ -263,12 +293,79 @@ define([
                     localStorage.actiontype = "taskUpdate";
                 }
                 localStorage.selectedTaskID = id;
-                if(localStorage.taskListType=="status" && status == "done"){
-                    openPreviousPage();
-                }
-                else if( (localStorage.taskListType=="category" || localStorage.taskListType=="context") && localStorage.selectedStatus_=="done" ){
-                    openPreviousPage();
-                }
+
+                /*if(islocal)
+                    oAuthUtil.getAccessToken(oAuthUtil.loadAPI(function(){
+                        console.log(arg);
+                        var updateTask = gapi.client.task.update(arg);
+                        updateTask.execute(function (data){
+                            console.log("task = "+JSON.stringify(data));
+                            if(data.id){
+                                taskStore.remove(id);
+                                var category = "";
+                                *//*for(var i=0;i<categoryStore.data.length;i++)
+                                    if(data.category == categoryStore.data[i].name)
+                                        category = categoryStore.data[i].id;*//*
+                                category = data.category;
+                                taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
+                                localStorage.selectedTaskID = data.id;
+                                self.refreshTaskList(localStorage.taskListType);
+                                refreshCategoryList(localStorage.selectedCategoryID_);
+                                self.refreshStatusList();
+                                self.getContextList();
+                                self.saveTaskToLocalStorage();
+                            }
+                            else{
+                                //self.updateTask(localStorage.selectedTaskID);
+                                self.refreshTaskList(localStorage.taskListType);
+                                refreshCategoryList(localStorage.selectedCategoryID_);
+                                self.refreshStatusList();
+                                self.getContextList();
+                                self.saveTaskToLocalStorage();
+                            }
+                        });
+                    }));
+                else
+                    gapi.client.load('task', apiVersion, function(yy) {
+                        console.log("task API loaded. "+JSON.stringify(yy));
+                        console.log("task API loaded. "+gapi.client.task);
+
+                        gapi.auth.authorize({client_id: clientId,
+                                scope: 'https://www.googleapis.com/auth/userinfo.email', immediate: false},
+                            function(res)
+                            {
+                                console.log(res);
+                                console.log(arg);
+                                var updateTask = gapi.client.task.update(arg);
+                                updateTask.execute(function (data){
+                                    console.log("task = "+JSON.stringify(data));
+                                    if(data.id){
+                                        taskStore.remove(id);
+                                        var category = "";
+                                        *//*for(var i=0;i<categoryStore.data.length;i++)
+                                            if(data.category == categoryStore.data[i].name)
+                                                category = categoryStore.data[i].id;*//*
+                                        category = data.category;
+                                        taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
+                                        localStorage.selectedTaskID = data.id;
+                                        self.refreshTaskList(localStorage.taskListType);
+                                        refreshCategoryList(localStorage.selectedCategoryID_);
+                                        self.refreshStatusList();
+                                        self.getContextList();
+                                        self.saveTaskToLocalStorage();
+                                    }
+                                    else{
+                                        //self.updateTask(localStorage.selectedTaskID);
+                                        self.refreshTaskList(localStorage.taskListType);
+                                        refreshCategoryList(localStorage.selectedCategoryID_);
+                                        self.refreshStatusList();
+                                        self.getContextList();
+                                        self.saveTaskToLocalStorage();
+                                    }
+                                });
+                            });
+                    }, ROOT);*/
+            //}
         },
         refreshTaskList: function(task_list_type){
             document.getElementById("task-list").innerHTML = "";
@@ -332,31 +429,29 @@ define([
             else if(task_list_type=="category"){
                 console.log("category = "+localStorage.selectedCategoryID);
                 for (var i=0;i<statuslist.length ;i++ ){
-                    if(statuslist[i]!="done"){
-                        var tmp = taskStore.query({ category: localStorage.selectedCategoryID,status:statuslist[i] });
-                        if(tmp.length>0){
-                            var itemWidget = new dojox.mobile.ListItem({
-                                label: "<span style='color:blue;'>"+statuslist[i]+"</span>",
-                                index: statuslist[i],
-                                icon:'images/'+iconarray[i],
-                                //moveTo: "#",
-                                onClick:function( e ){}
-                            });
-                            listWidget.addChild(itemWidget);
-                        }
-                        for(var j=0;j<tmp.length;j++){
-                            itemWidget = new dojox.mobile.ListItem({
-                                label: tmp[j].title,
-                                index: tmp[j].id,
-                                status: statuslist[i],
-                                //icon:'images/book.png',
-                                moveTo: "#",
-                                onClick:function( e ){
-                                    moveToEditTaskPage(this.index,this.status);
-                                }
-                            });
-                            listWidget.addChild(itemWidget);
-                        }
+                    var tmp = taskStore.query({ category: localStorage.selectedCategoryID,status:statuslist[i] });
+                    if(tmp.length>0){
+                        var itemWidget = new dojox.mobile.ListItem({
+                            label: "<span style='color:blue;'>"+statuslist[i]+"</span>",
+                            index: statuslist[i],
+                            icon:'images/'+iconarray[i],
+                            //moveTo: "#",
+                            onClick:function( e ){}
+                        });
+                        listWidget.addChild(itemWidget);
+                    }
+                    for(var j=0;j<tmp.length;j++){
+                        itemWidget = new dojox.mobile.ListItem({
+                            label: tmp[j].title,
+                            index: tmp[j].id,
+                            status: statuslist[i],
+                            //icon:'images/book.png',
+                            moveTo: "#",
+                            onClick:function( e ){
+                                moveToEditTaskPage(this.index,this.status);
+                            }
+                        });
+                        listWidget.addChild(itemWidget);
                     }
                 }
 
@@ -399,16 +494,14 @@ define([
                 }
                 var statuslist_ = [];
                 for(var i=0;i<statuslist.length;i++){
-                    if(statuslist[i]!="done"){
-                        var flag = false;
-                        for(var j=0;j<tasklist.length;j++){
-                            if(tasklist[j].status==statuslist[i]){
-                                flag = true;
-                            }
+                    var flag = false;
+                    for(var j=0;j<tasklist.length;j++){
+                        if(tasklist[j].status==statuslist[i]){
+                            flag = true;
                         }
-                        if(flag==true){
-                            statuslist_.push(statuslist[i]);
-                        }
+                    }
+                    if(flag==true){
+                        statuslist_.push(statuslist[i]);
                     }
                 }
                 for(var j=0;j<statuslist_.length;j++){
@@ -463,6 +556,9 @@ define([
                             if(data.id){
                                 taskStore.remove(id);
                                 var category = "";
+                                /*for(var i=0;i<categoryStore.data.length;i++)
+                                    if(data.category == categoryStore.data[i].name)
+                                        category = categoryStore.data[i].id;*/
                                 if(typeof(data.category) == "undefined")
                                     category = "";
                                 else
@@ -470,6 +566,7 @@ define([
                                 taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                 localStorage.selectedTaskID = data.id;
                             }
+                            //self.updateTask(localStorage.selectedTaskID);
                             self.refreshTaskList(localStorage.taskListType);
                             refreshCategoryList(localStorage.selectedCategoryID_);
                             self.refreshStatusList();
@@ -485,12 +582,16 @@ define([
                             function(res)
                             {
                                 console.log(res);
+                                //var arg = {title:title,description:encodeURI(description),category:category,status:status};
                                 var insertTask = gapi.client.task.insert(arg);
                                 insertTask.execute(function (data){
                                     console.log("task = "+JSON.stringify(data));
                                     if(data.id){
                                         taskStore.remove(id);
                                         var category = "";
+                                        /*for(var i=0;i<categoryStore.data.length;i++)
+                                            if(data.category == categoryStore.data[i].name)
+                                                category = categoryStore.data[i].id;*/
                                         category = data.category;
                                         if(typeof(data.category) == "undefined")
                                             category = "";
@@ -499,6 +600,7 @@ define([
                                         taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
                                         localStorage.selectedTaskID = data.id;
                                     }
+                                    //self.updateTask(localStorage.selectedTaskID);
                                     self.refreshTaskList(localStorage.taskListType);
                                     refreshCategoryList(localStorage.selectedCategoryID_);
                                     self.refreshStatusList();
@@ -533,6 +635,58 @@ define([
                 arg = {title:title,description:encodeURI(description),category:category,status:status};
             localStorage.args = JSON.stringify(arg);
             localStorage.actiontype = "taskInsert";
+
+            /*if(islocal)
+                oAuthUtil.getAccessToken(oAuthUtil.loadAPI(function(){
+                    var insertTask = gapi.client.task.insert(arg);
+                    insertTask.execute(function (data){
+                        console.log("task = "+JSON.stringify(data));
+                        if(data.id){
+                            taskStore.remove(id);
+                            var category = "";
+                            for(var i=0;i<categoryStore.data.length;i++)
+                                if(data.category == categoryStore.data[i].name)
+                                    category = categoryStore.data[i].id;
+                            taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
+                            localStorage.selectedTaskID = data.id;
+                        }
+                        //self.updateTask(localStorage.selectedTaskID);
+                        self.refreshTaskList(localStorage.taskListType);
+                        refreshCategoryList(localStorage.selectedCategoryID_);
+                        self.refreshStatusList();
+                        self.getContextList();
+                    });
+                }));
+            else
+                gapi.client.load('task', apiVersion, function(yy) {
+                    console.log("task API loaded. "+JSON.stringify(yy));
+                    console.log("task API loaded. "+gapi.client.task);
+                    gapi.auth.authorize({client_id: clientId,
+                            scope: 'https://www.googleapis.com/auth/userinfo.email', immediate: false},
+                        function(res)
+                        {
+                            console.log(res);
+                            //var arg = {title:title,description:encodeURI(description),category:category,status:status};
+                            var insertTask = gapi.client.task.insert(arg);
+                            insertTask.execute(function (data){
+                                console.log("task = "+JSON.stringify(data));
+                                if(data.id){
+                                    taskStore.remove(id);
+                                    var category = "";
+                                    for(var i=0;i<categoryStore.data.length;i++)
+                                        if(data.category == categoryStore.data[i].name)
+                                            category = categoryStore.data[i].id;
+                                    taskStore.add({id:data.id,title:data.title,local_timestamp:data.last_updated,server_timestamp:data.last_updated,status:data.status,category:category,description:encodeURI(data.description)});
+                                    localStorage.selectedTaskID = data.id;
+                                }
+                                //self.updateTask(localStorage.selectedTaskID);
+                                self.refreshTaskList(localStorage.taskListType);
+                                refreshCategoryList(localStorage.selectedCategoryID_);
+                                self.refreshStatusList();
+                                self.getContextList();
+                            });
+                        });
+                }, ROOT);*/
         },
         read:function(){
             var self = this;
@@ -576,6 +730,11 @@ define([
                 tmp.local_timestamp = data[i].last_updated;
                 tmp.server_timestamp = data[i].last_updated;
                 console.log(categoryStore.data);
+                /*for(var j=0;j<categoryStore.data.length;j++){
+                    if(categoryStore.data[j].name == data[i].category)
+                        //tmp.category = data[i].category;
+                        tmp.category = categoryStore.data[j].id;
+                }*/
                 if(typeof(data[i].category)=="undefined")
                     tmp.category = "";
                 else
@@ -663,39 +822,55 @@ define([
                 ///get task count
                 var taskStoreIndex = -1;
                 for(var i=0;i<taskStore.data.length;i++){
-                    if(taskStore.data[i].status != "done"){
-                        taskStoreIndex = -1;
-                        var tmp = taskStore.data[i].title;
-                        var split = tmp.split(" ");
-                        for(var j=0;j<split.length;j++){
-                            if(split[j].indexOf("@")!=-1){
-                                var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-                                var split_split = tmp_tmp.split("@");
-                                var k = 0;
-                                for(var ii=0;ii<split_split.length;ii++){
-                                    if(contextlist[i_]=="@"+split_split[ii]){
-                                        if(taskStoreIndex==-1){
-                                            taskStoreIndex=i;
-                                            taskcount++;
-                                        }
+                    taskStoreIndex = -1;
+                    var tmp = taskStore.data[i].title;
+                    var split = tmp.split(" ");
+                    for(var j=0;j<split.length;j++){
+                        if(split[j].indexOf("@")!=-1){
+                            var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
+                            var split_split = tmp_tmp.split("@");
+                            var k = 0;
+                            for(var ii=0;ii<split_split.length;ii++){
+                                /*for(k=0;k<contextlist.length;k++){
+                                 if(contextlist[k]=="@"+split_split[ii]){
+                                 taskcount++;
+                                 }
+                                 }*/
+                                /*if(k==contextlist.length){
+                                 if(split_split[ii]!="")
+                                 taskcount++;
+                                 }*/
+                                if(contextlist[i_]=="@"+split_split[ii]){
+                                    if(taskStoreIndex==-1){
+                                        taskStoreIndex=i;
+                                        taskcount++;
                                     }
                                 }
                             }
                         }
+                    }
 
-                        tmp = taskStore.data[i].description;
-                        var split = tmp.split(" ");
-                        for(var j=0;j<split.length;j++){
-                            if(split[j].indexOf("@")!=-1){
-                                var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
-                                var split_split = tmp_tmp.split("@");
-                                var k = 0;
-                                for(var ii=0;ii<split_split.length;ii++){
-                                    if(contextlist[i_]=="@"+split_split[ii]){
-                                        if(taskStoreIndex==-1){
-                                            taskStoreIndex=i;
-                                            taskcount++;
-                                        }
+                    tmp = taskStore.data[i].description;
+                    var split = tmp.split(" ");
+                    for(var j=0;j<split.length;j++){
+                        if(split[j].indexOf("@")!=-1){
+                            var tmp_tmp = split[j].substring(split[j].indexOf("@"),split[j].length);
+                            var split_split = tmp_tmp.split("@");
+                            var k = 0;
+                            for(var ii=0;ii<split_split.length;ii++){
+                                /*for(k=0;k<contextlist.length;k++){
+                                 if(contextlist[k]=="@"+split_split[ii]){
+                                 taskcount++;
+                                 }
+                                 }*/
+                                /*if(k==contextlist.length){
+                                 if(split_split[ii]!="")
+                                 taskcount++;
+                                 }*/
+                                if(contextlist[i_]=="@"+split_split[ii]){
+                                    if(taskStoreIndex==-1){
+                                        taskStoreIndex=i;
+                                        taskcount++;
                                     }
                                 }
                             }

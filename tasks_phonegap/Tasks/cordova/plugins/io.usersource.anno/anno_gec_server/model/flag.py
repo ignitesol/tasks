@@ -13,7 +13,6 @@ class Flag(BaseModel):
     Flag data model.
     """
     anno_key = ndb.KeyProperty(kind=Anno)
-    last_modified = ndb.DateTimeProperty(auto_now_add=True)
 
     def to_message(self):
         """

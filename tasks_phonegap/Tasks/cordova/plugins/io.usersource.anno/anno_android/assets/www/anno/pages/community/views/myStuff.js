@@ -1,5 +1,4 @@
 define([
-    "dojo/_base/lang",
     "dojo/dom",
     "dojo/dom-class",
     "dojo/dom-construct",
@@ -9,117 +8,18 @@ define([
     "dojo/_base/connect",
     "dojo/window",
     "dijit/registry",
-    "dojox/mvc/getStateful",
     "anno/anno/AnnoDataHandler",
     "anno/common/Util",
-    "anno/common/OAuthUtil",
     "dojo/text!../templates/localAnnoItem.html"
 ],
-    function (lang, dom, domClass, domConstruct, domGeom, domStyle, dojoString, connect, win, registry, getStateful, AnnoDataHandler, Util, OAuthUtil, annoItemTemplate)
+    function (dom, domClass, domConstruct, domGeom, domStyle, dojoString, connect, win, registry, AnnoDataHandler, Util, annoItemTemplate)
     {
         var _connectResults = []; // events connect results
-        var app = null, eventsModel = null, needRefresh = true;
-        var emptyAnno = {
-            "id": 0,
-            "annoText": "0",
-            "app": "0",
-            "author": "0",
-            "screenshot":"0",
-            circleX: 0,
-            circleY:0,
-            level:1,
-            deviceInfo:" ",
-            comments:[{
-                author:'',
-                comment:''
-            }]
-        };
+        var app = null;
 
-        var loadMyAnnos = function()
+        var loadLocalAnnos = function()
         {
-            AnnoDataHandler.loadLocalAnnos(function (localAnnos){
-                Util.showLoadingIndicator();
-                OAuthUtil.getAccessToken(function(){
-                    Util.loadAPI(Util.API.anno, function(){
-                        var mystuff = gapi.client.anno.anno.mystuff();
-                        console.error("getting my annos from server.");
-                        mystuff.execute(function (data)
-                        {
-                            if (!data)
-                            {
-                                Util.hideLoadingIndicator();
-                                alert("Annos returned from server are empty.");
-                            }
-
-                            if (data.error)
-                            {
-                                Util.hideLoadingIndicator();
-                                alert("An error occurred when calling anno.mystuff api: "+data.error.message);
-                            }
-
-                            var annoList = [];
-
-                            if (data&&data.result)
-                            {
-                                annoList = data.result.anno_list||[];
-                            }
-
-                            var spliceArgs = [0, eventsModel.model.length], eventData, userInfo = Util.getCurrentUserInfo(), userName = userInfo.nickname;
-
-                            for (var i= 0, l=localAnnos.length;i<l;i++)
-                            {
-                                eventData = lang.clone(emptyAnno);
-
-                                eventData.annoText = localAnnos[i].comment;
-                                eventData.annoType = localAnnos[i].anno_type;
-                                eventData.annoIcon = localAnnos[i].anno_type == Util.annoType.SimpleComment?"icon-simplecomment":"icon-shapes";
-                                eventData.app = localAnnos[i].app_name;
-                                eventData.screenshot_key = localAnnos[i].screenshot_key;
-                                eventData.author = userName;
-                                eventData.id = null;
-                                eventData.circleX = parseInt(localAnnos[i].x, 10);
-                                eventData.circleY = parseInt(localAnnos[i].y, 10);
-                                eventData.simple_circle_on_top = localAnnos[i].direction==0||localAnnos[i].direction=='false';
-
-                                eventData.deviceInfo = (localAnnos[i].model||'&nbsp;')+'&nbsp;'+(localAnnos[i].os_name||'&nbsp;')+(localAnnos[i].os_version||'&nbsp;');
-                                eventData.vote = false;
-                                eventData.flag = false;
-                                eventData.level = localAnnos[i].level;
-                                eventData.draw_elements = localAnnos[i].draw_elements||"";
-                                eventData.comments = [];
-
-                                spliceArgs.push(new getStateful(eventData));
-
-                                console.error(JSON.stringify(eventData));
-                            }
-
-                            for (var i = 0, l = annoList.length; i < l; i++)
-                            {
-                                eventData = lang.clone(emptyAnno);
-
-                                eventData.annoText = annoList[i].anno_text;
-                                eventData.annoType = annoList[i].anno_type;
-                                eventData.annoIcon = annoList[i].anno_type == Util.annoType.SimpleComment?"icon-simplecomment":"icon-shapes";
-                                eventData.app = annoList[i].app_name;
-                                eventData.author = annoList[i].creator?annoList[i].creator.display_name||annoList[i].creator.user_email||annoList[i].creator.user_id:"";
-                                eventData.id = annoList[i].id;
-                                eventData.circleX = parseInt(annoList[i].simple_x, 10);
-                                eventData.circleY = parseInt(annoList[i].simple_y, 10);
-                                eventData.simple_circle_on_top = annoList[i].simple_circle_on_top;
-
-                                spliceArgs.push(new getStateful(eventData));
-                            }
-
-                            eventsModel.model.splice.apply(eventsModel.model, spliceArgs);
-
-                            console.error(JSON.stringify(data.result));
-                            Util.hideLoadingIndicator();
-
-                            drawAnnos(spliceArgs);
-                        });
-                    });
-                });
-            });
+            AnnoDataHandler.loadLocalAnnos(drawAnnos);
         };
 
         var drawAnnos = function(annos)
@@ -127,14 +27,13 @@ define([
             var annoItemList = registry.byId('annoListMyStuff');
             annoItemList.destroyDescendants();
 
-            for (var i= 2,c=annos.length;i<c;i++)
+            for (var i= 0,c=annos.length;i<c;i++)
             {
-                if (!annos[i].annoIcon)
-                    annos[i].annoIcon = annos[i].anno_type == Util.annoType.DrawComment?"icon-shapes":"icon-simplecomment";
+                annos[i].annoIcon = annos[i].anno_type == Util.annoType.DrawComment?"icon-shapes":"icon-simplecomment";
                 domConstruct.create("li", {
                     "transition":'slide',
                     "data-dojo-type":"dojox/mobile/ListItem",
-                    "data-dojo-props":"variableHeight:true,clickable:true,noArrow:true,_index:"+(i-2),
+                    "data-dojo-props":"variableHeight:true,clickable:true,noArrow:true,_index:"+i,
                     innerHTML: dojoString.substitute(annoItemTemplate, annos[i])
                 }, annoItemList.domNode, "last");
             }
@@ -173,14 +72,7 @@ define([
 
         var gotoLocalAnnoViewer = function(annoItem)
         {
-            app.transitionToView(annoItem.domNode, {target:'detail',url:'#detail', params:{cursor:annoItem._index, source:"mystuff"}});
-            needRefresh = false;
-        };
-
-        var goBack = function()
-        {
-            needRefresh = true;
-            history.back();
+            app.transitionToView(annoItem.domNode, {target:'localAnnoViewer',url:'#localAnnoViewer', params:{index:annoItem._index}});
         };
 
         return {
@@ -188,38 +80,20 @@ define([
             init:function ()
             {
                 app = this.app;
-                eventsModel = this.loadedModels.mystuff;
 
                 _connectResults.push(connect.connect(dom.byId("btnLearnHow"), 'click', function(e)
                 {
                     Util.startActivity("Intro", true);
                 }));
-
-                _connectResults.push(connect.connect(dom.byId("iconBackMyStuff"), 'click', function(e)
-                {
-                    goBack();
-                }));
-
-                _connectResults.push(connect.connect(dom.byId("navBtnBackMyStuff"), 'click', function(e)
-                {
-                    goBack();
-                }));
             },
             afterActivate: function()
             {
                 adjustSize();
-
-                if (needRefresh)
-                {
-                    loadMyAnnos();
-                }
-
-                document.removeEventListener("backbutton", goBack, false);
-                document.addEventListener("backbutton", goBack, false);
+                loadLocalAnnos();
             },
             beforeDeactivate: function()
             {
-                document.removeEventListener("backbutton", goBack, false);
+
             },
             destroy:function ()
             {
@@ -229,8 +103,6 @@ define([
                     connect.disconnect(connectResult);
                     connectResult = _connectResults.pop();
                 }
-
-                document.removeEventListener("backbutton", goBack, false);
             }
         }
     });

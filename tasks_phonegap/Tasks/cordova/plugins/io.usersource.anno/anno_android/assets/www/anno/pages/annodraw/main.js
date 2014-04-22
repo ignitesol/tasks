@@ -73,7 +73,7 @@ require([
     {
         if (domClass.contains(dom.byId("barShare"), 'barIconInactive')) return;
 
-        if (level == 2 || !isAnno)
+        if (level == 2)
         {
             if (drawMode)
             {
@@ -644,7 +644,7 @@ require([
             var authResult = OAuthUtil.isAuthorized();
             if (annoUtil.hasConnection()&&!authResult.authorized)
             {
-                OAuthUtil.openAuthPage("annodraw");
+                OAuthUtil.openAuthPage();
                 return;
             }
             else

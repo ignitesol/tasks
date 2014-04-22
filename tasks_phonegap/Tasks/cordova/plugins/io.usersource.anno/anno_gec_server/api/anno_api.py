@@ -10,7 +10,6 @@ from google.appengine.ext.db import BadValueError
 from protorpc import message_types
 from protorpc import messages
 from protorpc import remote
-from google.appengine.api import search
 
 from message.anno_api_messages import AnnoMessage
 from message.anno_api_messages import AnnoMergeMessage
@@ -23,10 +22,7 @@ from model.flag import Flag
 from model.follow_up import FollowUp
 from api.utils import anno_js_client_id
 from api.utils import auth_user
-from api.utils import put_search_document
-from api.utils import delete_all_in_index
 import logging
-import datetime
 
 
 @endpoints.api(name='anno', version='1.0', description='Anno API',
@@ -56,7 +52,7 @@ class AnnoApi(remote.Service):
         anno = Anno.get_by_id(request.id)
         if anno is None:
             raise endpoints.NotFoundException('No anno entity with the id "%s" exists.' % request.id)
-            # set anno basic properties
+        # set anno basic properties
         anno_resp_message = anno.to_response_message()
         # set anno association with followups
         followups = FollowUp.find_by_anno(anno)
@@ -124,14 +120,9 @@ class AnnoApi(remote.Service):
         if current user doesn't exist, the user will be created first.
         """
         user = auth_user(self.request_state.headers)
-        exist_anno = Anno.is_anno_exists(user, request)
-        if exist_anno is not None:
-            raise endpoints.BadRequestException("Duplicate anno(%s) already exists." % exist_anno.key.id())
+        if Anno.is_anno_exists(user, request):
+            raise endpoints.BadRequestException("Duplicate anno already exists.")
         entity = Anno.insert_anno(request, user)
-
-        # index this document. strange exception here.
-        put_search_document(entity.generate_search_document())
-
         return entity.to_response_message()
 
 
@@ -154,12 +145,7 @@ class AnnoApi(remote.Service):
             raise endpoints.NotFoundException('No anno entity with the id "%s" exists.' % request.id)
 
         anno.merge_from_message(request)
-        # set last update time & activity
-        anno.last_update_time = datetime.datetime.now()
-        anno.last_activity = 'anno'
         anno.put()
-        # update search document.
-        put_search_document(anno.generate_search_document())
         return anno.to_response_message()
 
     @endpoints.method(anno_with_id_resource_container, message_types.VoidMessage, path='anno/{id}',
@@ -176,43 +162,3 @@ class AnnoApi(remote.Service):
             raise endpoints.NotFoundException('No anno entity with the id "%s" exists.' % request.id)
         anno.key.delete()
         return message_types.VoidMessage()
-
-    @endpoints.method(message_types.VoidMessage, AnnoListMessage, path='anno_my_stuff', http_method='GET',
-                      name='anno.mystuff')
-    def anno_my_stuff(self, request):
-        """
-        Exposes an API endpoint to return all my anno list.
-        """
-        user = auth_user(self.request_state.headers)
-        return Anno.query_by_last_modified(user)
-
-    anno_search_resource_container = endpoints.ResourceContainer(
-        search_string=messages.StringField(1, required=False),
-        app_name=messages.StringField(2, required=False),
-        order_type=messages.StringField(3, required=True),
-        cursor=messages.StringField(4),  # can't make it work, not sure why. may check it in the future.
-        limit=messages.IntegerField(5),
-        offset=messages.IntegerField(6)
-    )
-
-    @endpoints.method(anno_search_resource_container, AnnoListMessage, path='anno_search', http_method='GET',
-                      name='anno.search')
-    def anno_search(self, request):
-        """
-        Exposes and API endpoint to search anno list.
-        """
-        # 1. authenticate
-        auth_user(self.request_state.headers)
-        # 2. validate parameter
-        if request.order_type is None:
-            raise endpoints.BadRequestException('order_type field is required.')
-        if request.order_type != 'recent' and request.order_type != 'active' and request.order_type != 'popular':
-            raise endpoints.BadRequestException(
-                'Invalid order_type field value, valid values are "recent", "active" and "popular"')
-        # 3. execute query
-        if request.order_type == 'popular':
-            return Anno.query_by_popular(request.limit, request.offset, request.search_string, request.app_name)
-        elif request.order_type == 'active':
-            return Anno.query_by_active(request.limit, request.offset, request.search_string, request.app_name)
-        else:
-            return Anno.query_by_recent(request.limit, request.offset, request.search_string, request.app_name)

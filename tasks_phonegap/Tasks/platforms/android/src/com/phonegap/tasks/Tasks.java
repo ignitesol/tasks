@@ -17,7 +17,7 @@
        under the License.
  */
 
-package com.phonegap.Tasks;
+package com.phonegap.tasks;
 
 import io.usersource.annoplugin.utils.AnnoUtils;
 
@@ -36,7 +36,7 @@ public class Tasks extends CordovaActivity
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-    	super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState);
         super.init();
 
         GestureOverlayView view = new GestureOverlayView(this);

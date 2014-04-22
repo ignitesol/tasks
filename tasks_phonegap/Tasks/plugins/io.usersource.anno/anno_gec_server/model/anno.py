@@ -4,17 +4,14 @@ __author__ = 'topcircler'
 Anno data store model definition.
 """
 
-from google.appengine.api import search
 from google.appengine.ext import ndb
 import datetime
-import logging
 
 from message.anno_api_messages import AnnoResponseMessage
 from message.anno_api_messages import AnnoListMessage
+import logging
 from model.base_model import BaseModel
 from api.utils import get_country_by_coordinate
-from api.utils import tokenize_string
-from api.utils import is_empty_string
 
 
 class Anno(BaseModel):
@@ -45,7 +42,6 @@ class Anno(BaseModel):
     followup_count = ndb.IntegerProperty(default=0)  # how many follow ups are there for this anno
     last_update_time = ndb.DateTimeProperty(auto_now_add=True)  # last time that vote/flag/followup creation.
     last_activity = ndb.StringProperty('anno')  # last activity, vote/flag/followup creation
-    last_update_type = ndb.StringProperty(default='create')  # create/edit
     latitude = ndb.FloatProperty()
     longitude = ndb.FloatProperty()
     country = ndb.StringProperty()
@@ -76,13 +72,7 @@ class Anno(BaseModel):
                                    screenshot_is_anonymized=self.screenshot_is_anonymized,
                                    latitude=self.latitude,
                                    longitude=self.longitude,
-                                   country=self.country,
-                                   vote_count=self.vote_count,
-                                   flag_count=self.flag_count,
-                                   followup_count=self.followup_count,
-                                   last_update_time=self.last_update_time,
-                                   last_activity=self.last_activity,
-                                   last_update_type=self.last_update_type
+                                   country=self.country
         )
 
     def to_response_message_by_projection(self, projection):
@@ -110,7 +100,7 @@ class Anno(BaseModel):
                      os_name=message.os_name, os_version=message.os_version, creator=user.key,
                      draw_elements=message.draw_elements, screenshot_is_anonymized=message.screenshot_is_anonymized,
                      geo_position=message.geo_position, flag_count=0, vote_count=0, followup_count=0,
-                     last_activity='UserSource', latitude=message.latitude, longitude=message.longitude)
+                     last_activity='anno', latitude=message.latitude, longitude=message.longitude)
         # set image.
         entity.image = message.image
         # set created time if provided in the message.
@@ -121,8 +111,7 @@ class Anno(BaseModel):
             entity.country = get_country_by_coordinate(message.latitude, message.longitude)
             # set last update time & activity
         entity.last_update_time = datetime.datetime.now()
-        entity.last_activity = 'UserSource'
-        entity.last_update_type = 'create'
+        entity.last_activity = 'anno'
         entity.put()
         return entity
 
@@ -295,182 +284,6 @@ class Anno(BaseModel):
         anno_list = []
         for anno in query:
             anno_message = anno.to_response_message()
+            anno_message.last_update_time = anno.last_update_time
             anno_list.append(anno_message)
         return AnnoListMessage(anno_list=anno_list)
-
-    @classmethod
-    def query_by_active(cls, limit, offset, search_string, app_name):
-        """
-        This method queries anno records by 'active' order.
-        'active' = last_update_time
-        :param limit how many anno records to retrieve
-        :param offset query offset which represents starting from which anno record.
-        :param search_string search string which partial-matches to anno_text.
-        :param app_name app name which full-matches to app_name, this parameter is a single app name, not an app list.
-        """
-        index = search.Index(name="anno_index")
-        # prepare pagination
-        if limit is None:
-            limit = 20  # default page size is 20.
-        if offset is None:
-            offset = 0
-        query_string = Anno.get_query_string(search_string, app_name)
-        sort = search.SortExpression(expression="last_update_time",
-                                     direction=search.SortExpression.DESCENDING,
-                                     default_value=datetime.datetime.now())
-        sort_opts = search.SortOptions(expressions=[sort])
-        query_options = search.QueryOptions(
-            limit=limit,
-            offset=offset,
-            sort_options=sort_opts,
-            returned_fields=['anno_text', 'app_name', 'last_update_time']
-        )
-        return Anno.convert_document_to_message(index, query_string, query_options, offset, limit)
-
-    @classmethod
-    def get_query_string(cls, search_string, app_name):
-        """
-        This method returns search query string based on the given search_string and app_name.
-        :param search_string: search string which partial-matches to anno_text.
-        :param app_name: app name which full-matches to app_name, this parameter is a single app name, not an app list.
-        """
-        query_string = ""
-        has_search_string = not is_empty_string(search_string)
-        if has_search_string:
-            words = tokenize_string(search_string)
-            query_string = Anno.get_query_string_for_all_fields(["anno_text", "app_name"], words)
-        if not is_empty_string(app_name):
-            if has_search_string and query_string is not None:
-                query_string = "(" + query_string + ") AND "
-            query_string += "app_name = \"%s\" " % app_name
-        logging.debug("query_string:%s" % query_string)
-        return query_string
-
-    @classmethod
-    def get_query_string_for_field(cls, field, words):
-        """
-        This method generates query string for a certain field against the given words.
-        """
-        if words is None or len(words) <= 0:
-            return None
-        query_string_for_field = field + " = ("
-        for index, word in enumerate(words):
-            query_string_for_field += "~%s" % word  # stemming
-            if index != len(words) - 1:
-                query_string_for_field += " OR "
-        query_string_for_field += ")"
-        return query_string_for_field
-
-    @classmethod
-    def get_query_string_for_all_fields(cls, fields, words):
-        """
-        This method generates query string for different fields against the given words.
-        :param fields: different field names. As for now, we only support anno_text and app_name.
-        :param words: tokens to match
-        """
-        if fields is not None and len(fields) > 0 and words is not None and len(words) > 0:
-            query_string = ""
-            for index, field in enumerate(fields):
-                query_string += Anno.get_query_string_for_field(field, words)
-                if index != len(fields) - 1:
-                    query_string += " OR "
-            return query_string
-        return None
-
-    @classmethod
-    def query_by_recent(cls, limit, offset, search_string, app_name):
-        """
-        This method queries anno records by 'recent' order.
-        'recent' = created
-        :param limit how many anno records to query.
-        :param offset query offset which represents starting from which anno record.
-        :param search_string search string which partial-matches to anno_text.
-        :param app_name app name which full-matches to app_name, this parameter is a single app name, not an app list.
-        """
-        index = search.Index(name="anno_index")
-        # prepare pagination
-        if limit is None:
-            limit = 20  # default page size is 20.
-        if offset is None:
-            offset = 0
-        # build query string
-        query_string = Anno.get_query_string(search_string, app_name)
-        # build query options
-        sort = search.SortExpression(expression="created",
-                                     direction=search.SortExpression.DESCENDING,
-                                     default_value=datetime.datetime.now())
-        sort_opts = search.SortOptions(expressions=[sort])
-        query_options = search.QueryOptions(
-            limit=limit,
-            offset=offset,
-            sort_options=sort_opts,
-            returned_fields=['anno_text', 'app_name', 'created']
-        )
-        # execute query
-        return Anno.convert_document_to_message(index, query_string, query_options, offset, limit)
-
-    @classmethod
-    def query_by_popular(cls, limit, offset, search_string, app_name):
-        """
-        This method queries anno records by 'popular' order.
-        'popular' = vote_count - flag_count
-        :param limit how many anno records to query.
-        :param offset query offset which represents starting from which anno record.
-        :param search_string search string which partial-matches to anno_text.
-        :param app_name app name which full-matches to app_name, this parameter is a single app name, not an app list.
-        """
-        index = search.Index(name="anno_index")
-        # prepare pagination
-        if limit is None:
-            limit = 20  # default page size is 20.
-        if offset is None:
-            offset = 0
-        # build query string
-        query_string = Anno.get_query_string(search_string, app_name)
-        # build query options
-        sort = search.SortExpression(expression="vote_count-flag_count",
-                                     direction=search.SortExpression.DESCENDING, default_value=0)
-        sort_opts = search.SortOptions(expressions=[sort])
-        query_options = search.QueryOptions(
-            limit=limit,
-            offset=offset,
-            sort_options=sort_opts,
-            returned_fields=['anno_text', 'app_name', 'vote_count', 'flag_count']
-        )
-        # execute query
-        return Anno.convert_document_to_message(index, query_string, query_options, offset, limit)
-
-    @classmethod
-    def convert_document_to_message(cls, index, query_string, query_options, offset, limit):
-        query = search.Query(query_string=query_string, options=query_options)
-        results = index.search(query)
-        number_retrieved = len(results.results)
-        anno_list = []
-        has_more = False
-        if number_retrieved > 0:
-            has_more = (number_retrieved == limit)
-            offset += number_retrieved
-            for result in results:
-                anno = Anno.get_by_id(long(result.doc_id))
-                anno_list.append(anno.to_response_message())
-        return AnnoListMessage(anno_list=anno_list, offset=offset, has_more=has_more)
-
-    def generate_search_document(self):
-        """
-        This method generates a search document filled with current anno information.
-        """
-        anno_id_string = "%d" % self.key.id()
-        app_name = "%s" % self.app_name
-        anno_text = "%s" % self.anno_text
-        anno_document = search.Document(
-            doc_id=anno_id_string,
-            fields=[
-                search.TextField(name='app_name', value=app_name),
-                search.TextField(name='anno_text', value=anno_text),
-                search.NumberField(name='vote_count', value=self.vote_count),
-                search.NumberField(name='flag_count', value=self.flag_count),
-                search.DateField(name='created', value=self.created),
-                search.DateField(name='last_update_time', value=self.last_update_time)
-            ]
-        )
-        return anno_document

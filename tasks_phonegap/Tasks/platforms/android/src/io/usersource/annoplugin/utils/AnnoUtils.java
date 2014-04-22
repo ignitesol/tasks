@@ -16,6 +16,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;
 import android.text.format.DateFormat;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import io.usersource.annoplugin.gesture.ScreenshotGestureListener;
 
 import java.io.File;
@@ -31,7 +32,7 @@ public class AnnoUtils
   // server.
   public static final String ANNO_SOURCE_PLUGIN = "plugin";
   public static final String ANNO_SOURCE_STANDALONE = "standalone";
-  public static final boolean debugEnabled = true;
+  public static final boolean debugEnabled = false;
 
   /**
    * Intent extra value: is_practice.
@@ -86,7 +87,7 @@ public class AnnoUtils
   }
 
   /**
-   * Enable taking screenshot by spiral gesture.
+   * Enable taking screenshot by certain gesture.
    *
    * @param activity
    * @param gestureOverlayView
@@ -155,7 +156,11 @@ public class AnnoUtils
   public static Bitmap takeScreenshot(Activity activity) {
     View view = activity.getWindow().getDecorView();
     view.setDrawingCacheEnabled(true);
-    view.buildDrawingCache();
+    
+    view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));  
+    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());  
+    
+    view.buildDrawingCache(true);
     Bitmap bitmap = view.getDrawingCache();
     Rect rect = new Rect();
     activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);

@@ -19,9 +19,6 @@ public class OptionFeedbackActivity extends DroidGap
     super.onCreate(savedInstanceState);
     super.init();
 
-    /**
-     * spiral gesture support start
-     */
     GestureOverlayView view = new GestureOverlayView(this);
     view.setLayoutParams(new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -35,9 +32,6 @@ public class OptionFeedbackActivity extends DroidGap
 
     setContentView(view);
     AnnoUtils.setEnableGesture(this, view, true);
-    /**
-     * spiral gesture support end
-     */
 
     super.loadUrl("file:///android_asset/www/anno/pages/feedback/main.html");
 
