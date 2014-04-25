@@ -1,21 +1,21 @@
 __author__ = 'topcircler'
 
+import datetime
+
 import endpoints
 from protorpc import remote
 from protorpc import messages
 from protorpc import message_types
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.db import BadValueError
-import datetime
 
-from api.utils import get_endpoints_current_user
 from api.utils import anno_js_client_id
 from api.utils import auth_user
-from model.user import User
 from model.anno import Anno
 from model.follow_up import FollowUp
 from message.followup_message import FollowupMessage
 from message.followup_message import FollowupListMessage
+from api.utils import put_search_document
 
 
 @endpoints.api(name='followup', version='1.0', description='Followup API',
@@ -47,7 +47,10 @@ class FollowupApi(remote.Service):
         anno.followup_count += 1
         anno.last_update_time = datetime.datetime.now()
         anno.last_activity = 'follwup'
+        anno.last_update_type = 'create'
         anno.put()
+        # update search document
+        put_search_document(anno.generate_search_document())
         return followup.to_message()
 
     followup_with_id_resource_container = endpoints.ResourceContainer(

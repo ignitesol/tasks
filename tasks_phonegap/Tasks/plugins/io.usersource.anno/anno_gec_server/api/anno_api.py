@@ -4,6 +4,9 @@ __author__ = 'topcircler'
 Anno API implemented using Google Cloud Endpoints.
 """
 
+import datetime
+import logging
+
 import endpoints
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.db import BadValueError
@@ -16,14 +19,12 @@ from message.anno_api_messages import AnnoMergeMessage
 from message.anno_api_messages import AnnoListMessage
 from message.anno_api_messages import AnnoResponseMessage
 from model.anno import Anno
-from model.user import User
 from model.vote import Vote
 from model.flag import Flag
 from model.follow_up import FollowUp
 from api.utils import anno_js_client_id
 from api.utils import auth_user
-import logging
-import datetime
+from api.utils import put_search_document
 
 
 @endpoints.api(name='anno', version='1.0', description='Anno API',
@@ -53,7 +54,7 @@ class AnnoApi(remote.Service):
         anno = Anno.get_by_id(request.id)
         if anno is None:
             raise endpoints.NotFoundException('No anno entity with the id "%s" exists.' % request.id)
-        # set anno basic properties
+            # set anno basic properties
         anno_resp_message = anno.to_response_message()
         # set anno association with followups
         followups = FollowUp.find_by_anno(anno)
@@ -125,6 +126,10 @@ class AnnoApi(remote.Service):
         if exist_anno is not None:
             raise endpoints.BadRequestException("Duplicate anno(%s) already exists." % exist_anno.key.id())
         entity = Anno.insert_anno(request, user)
+
+        # index this document. strange exception here.
+        put_search_document(entity.generate_search_document())
+
         return entity.to_response_message()
 
 
@@ -151,6 +156,8 @@ class AnnoApi(remote.Service):
         anno.last_update_time = datetime.datetime.now()
         anno.last_activity = 'anno'
         anno.put()
+        # update search document.
+        put_search_document(anno.generate_search_document())
         return anno.to_response_message()
 
     @endpoints.method(anno_with_id_resource_container, message_types.VoidMessage, path='anno/{id}',
@@ -168,10 +175,83 @@ class AnnoApi(remote.Service):
         anno.key.delete()
         return message_types.VoidMessage()
 
-    @endpoints.method(message_types.VoidMessage, AnnoListMessage, path='anno_my_stuff', http_method='GET', name='anno.mystuff')
+    @endpoints.method(message_types.VoidMessage, AnnoListMessage, path='anno_my_stuff', http_method='GET',
+                      name='anno.mystuff')
     def anno_my_stuff(self, request):
         """
         Exposes an API endpoint to return all my anno list.
         """
         user = auth_user(self.request_state.headers)
-        return Anno.query_by_last_modified(user)
+        anno_list = Anno.query_anno_by_author(user)
+        vote_list = Vote.query_vote_by_author(user)
+        for vote in vote_list:
+            anno = Anno.get_by_id(vote.anno_key.id())
+            if anno is not None:
+                anno_list.append(anno)
+        flag_list = Flag.query_flag_by_author(user)
+        for flag in flag_list:
+            anno = Anno.get_by_id(flag.anno_key.id())
+            if anno is not None:
+                anno_list.append(anno)
+        followup_list = FollowUp.query_followup_by_author(user)
+        for followup in followup_list:
+            anno = Anno.get_by_id(followup.anno_key.id())
+            if anno is not None:
+                anno_list.append(anno)
+        anno_set = list(set(anno_list))
+
+        anno_message_list = []
+        for anno in anno_set:
+            anno_message_list.append(anno.to_response_message())
+        return AnnoListMessage(anno_list=anno_message_list)
+
+    anno_search_resource_container = endpoints.ResourceContainer(
+        search_string=messages.StringField(1, required=False),
+        app_name=messages.StringField(2, required=False),
+        order_type=messages.StringField(3, required=True),
+        cursor=messages.StringField(4),  # can't make it work, not sure why. may check it in the future.
+        limit=messages.IntegerField(5),
+        offset=messages.IntegerField(6),
+        only_my_apps=messages.BooleanField(7)
+    )
+
+    @endpoints.method(anno_search_resource_container, AnnoListMessage, path='anno_search', http_method='GET',
+                      name='anno.search')
+    def anno_search(self, request):
+        """
+        Exposes and API endpoint to search anno list.
+        """
+        user = auth_user(self.request_state.headers)
+
+        if request.order_type is None:
+            raise endpoints.BadRequestException('order_type field is required.')
+        if request.order_type != 'recent' and request.order_type != 'active' and request.order_type != 'popular':
+            raise endpoints.BadRequestException(
+                'Invalid order_type field value, valid values are "recent", "active" and "popular"')
+
+        app_set = None
+        logging.info("only_my_apps=%s" % request.only_my_apps)
+        if request.only_my_apps:
+            app_set = set()
+            for anno in Anno.query_anno_by_author(user):
+                app_set.add(anno.app_name)
+            for vote in Vote.query_vote_by_author(user):
+                anno = Anno.get_by_id(vote.anno_key.id())
+                if anno is not None:
+                    app_set.add(anno.app_name)
+            for flag in Flag.query_flag_by_author(user):
+                anno = Anno.get_by_id(flag.anno_key.id())
+                if anno is not None:
+                    app_set.add(anno.app_name)
+            for followup in FollowUp.query_followup_by_author(user):
+                anno = Anno.get_by_id(followup.anno_key.id())
+                if anno is not None:
+                    app_set.add(anno.app_name)
+
+        if request.order_type == 'popular':
+            return Anno.query_by_popular(request.limit, request.offset,
+                                         request.search_string, request.app_name, app_set)
+        elif request.order_type == 'active':
+            return Anno.query_by_active(request.limit, request.offset, request.search_string, request.app_name, app_set)
+        else:
+            return Anno.query_by_recent(request.limit, request.offset, request.search_string, request.app_name, app_set)

@@ -4,12 +4,16 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import io.usersource.anno.AnnoDrawActivity;
@@ -49,6 +53,10 @@ public class AnnoCordovaPlugin extends CordovaPlugin
   public static final String START_ACTIVITY = "start_activity";
   public static final String CLOSE_SOFTKEYBOARD = "close_softkeyboard";
   public static final String SHOW_SOFTKEYBOARD = "show_softkeyboard";
+  public static final String GET_INSTALLED_APP_LIST = "get_installed_app_list";
+  public static final String ENABLE_NATIVE_GESTURE_LISTENER = "enable_native_gesture_listener";
+  public static final String TRIGGER_CREATE_ANNO = "trigger_create_anno";
+  public static final String START_ANNO_DRAW = "start_anno_draw";
 
   // activity names
   public static final String ACTIVITY_INTRO = "Intro";
@@ -76,6 +84,10 @@ public class AnnoCordovaPlugin extends CordovaPlugin
     }
     else if (GET_RECENT_APPLIST.equals(action)) {
       getRecentTasks(args, callbackContext);
+      return true;
+    }
+    else if (GET_INSTALLED_APP_LIST.equals(action)) {
+      getInstalledAppList(args, callbackContext);
       return true;
     }
     else if (GET_SCREENSHOT_PATH.equals(action)) {
@@ -164,6 +176,69 @@ public class AnnoCordovaPlugin extends CordovaPlugin
       }
 
       callbackContext.success();
+
+      return true;
+    }
+    else if (ENABLE_NATIVE_GESTURE_LISTENER.equals(action)) {
+      final Activity activity = this.cordova.getActivity();
+      final boolean enable = args.getBoolean(0);
+
+      this.cordova.getActivity().runOnUiThread(new Runnable()
+      {
+        @Override
+        public void run()
+        {
+          View contentView = AnnoUtils.getContentView(activity);
+          if (enable)
+          {
+            if (contentView instanceof android.gesture.GestureOverlayView)
+            {
+              AnnoUtils.setEnableGesture(activity, (android.gesture.GestureOverlayView)contentView, true);
+            }
+            else
+            {
+              android.gesture.GestureOverlayView gView = AnnoUtils.addGestureViewToActivity(activity);
+              AnnoUtils.setEnableGesture(activity, gView, true);
+            }
+          }
+          else
+          {
+            if (contentView instanceof android.gesture.GestureOverlayView)
+            {
+              AnnoUtils.setEnableGesture(activity, (android.gesture.GestureOverlayView)contentView, false);
+            }
+          }
+        }
+      });
+
+      callbackContext.success();
+      return true;
+    }
+    else if (TRIGGER_CREATE_ANNO.equals(action))
+    {
+      Activity activity = this.cordova.getActivity();
+      AnnoUtils.triggerCreateAnno(activity);
+      callbackContext.success();
+
+      return true;
+    }
+    else if (START_ANNO_DRAW.equals(action))
+    {
+      String imageURI = args.getString(0);
+      Activity activity = this.cordova.getActivity();
+      String packageName = activity.getPackageName();
+
+      Intent intent = new Intent(Intent.ACTION_SEND);
+      intent.setClassName(packageName,
+              "io.usersource.anno.AnnoDrawActivity");
+      intent.setType("image/*");
+      // set this flag for FeedbackEditActivity to know it's practice.
+      File imageFile = new File(imageURI);
+      Uri imageUri = Uri.parse(imageURI);
+      intent.putExtra(Intent.EXTRA_STREAM, imageUri);
+      intent.putExtra(AnnoUtils.LEVEL, 0);
+
+      activity.startActivity(intent);
 
       return true;
     }
@@ -414,6 +489,38 @@ public class AnnoCordovaPlugin extends CordovaPlugin
 
       }
 
+    }
+
+    callbackContext.success(jsonArray);
+  }
+
+  /**
+   * get user installed app list
+   * @param args
+   * @param callbackContext
+   * @return
+   * @throws JSONException
+   */
+  private void getInstalledAppList(JSONArray args, CallbackContext callbackContext) throws JSONException
+  {
+    Activity activity = this.cordova.getActivity();
+
+    PackageManager packageManager = activity.getPackageManager();
+    List<PackageInfo> apps = packageManager.getInstalledPackages(0);
+
+    JSONArray jsonArray = new JSONArray();
+    JSONObject jso = null;
+    for (PackageInfo app : apps)
+    {
+      if ((app.applicationInfo.flags&ApplicationInfo.FLAG_SYSTEM)==0)
+      {
+        jso = new JSONObject();
+        jso.put("name", app.applicationInfo.loadLabel(packageManager).toString());
+        jso.put("packageName", app.packageName);
+        jso.put("versionCode", app.versionCode);
+
+        jsonArray.put(jso);
+      }
     }
 
     callbackContext.success(jsonArray);

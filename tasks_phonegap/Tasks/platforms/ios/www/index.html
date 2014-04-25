@@ -11,12 +11,24 @@
         <script src="js/init.js"></script>
         <script src="js/common.js"></script>
         <!--<script type="text/javascript" src="https://apis.google.com/js/client.js?onload=gce_init"></script>-->
-
+        <script>
+            function share_item() {
+                cordova.exec(
+                    function (data) {},
+                    function (err) {
+                        alert(err);
+                    },
+                    "AnnoCordovaPlugin",
+                    'trigger_create_anno',
+                    []
+                );
+            }
+        </script>
 	</head>
 	<body style="display:none;" id="body">
 		<div id="group" data-dojo-type="dojox.mobile.View" >
 			<div id="home-page" data-dojo-type="dojox/mobile/View" >
-				<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top"'><img src="images/icon.png" width=40 height=40 style="float:left;padding:5px 5px 5px 5px;"/>Tasks</h1>
+				<h1 data-dojo-type="dojox/mobile/Heading" data-dojo-props='fixed:"top"' onclick="share_item();"><img src="images/icon.png" width=40 height=40 style="float:left;padding:5px 5px 5px 5px;"/>Tasks</h1>
 				<div data-dojo-type="dojox.mobile.ScrollableView">
                     <div class="main-content">
                         <ul data-dojo-type="dojox/mobile/RoundRectList" id="status-list">

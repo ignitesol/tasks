@@ -190,9 +190,7 @@ define([
             }).then(function (data)
                 {
                     console.error("access token res: " + JSON.stringify(data));
-                    self.setAccessToken(data);
-
-                    callback();
+                    self.setAccessToken(data, callback);
                 }, function (err)
                 {
                     console.error("refresh access token error: " + err);
@@ -265,29 +263,51 @@ define([
 
             return !(currentTime < (this.accessTokenTime + this.accessTokenExpiryLimit));
         },
-        setAccessToken: function(tokenObject)
+        setAccessToken: function(tokenObject, callback)
         {
-            if (gapi&&gapi.auth)
+            if (window.gapi&&window.gapi.auth)
             {
                 this.accessToken = tokenObject;
                 this.accessTokenTime = (new Date()).getTime();
                 console.error(gapi.auth);
                 gapi.auth.setToken(tokenObject);
+
+                if (callback)
+                {
+                    callback();
+                }
             }
             else
             {
                 var self = this;
                 window.setTimeout(function(){
-                    self.setAccessToken(tokenObject);
+                    self.setAccessToken(tokenObject, callback);
                 }, 50)
             }
-
-
         },
-        openAuthPage: function()
+        getPhoneGapPath:function(source)
         {
-            var url = "file:///android_asset/www/anno/pages/auth/main.html?callback="+document.location.href;
+            source = source||"home";
+            var path = window.location.pathname;
+            if (source == "home")
+            {
+                // for anno/pages/community/main.html
+                path = path.substr(0, path.length - 30);
+            }
+            else
+            {
+                // for anno/pages/annodraw/main.html
+                path = path.substr(0, path.length - 29);
+            }
+
+            return 'file://' + path;
+        },
+        openAuthPage: function(source)
+        {
+            var url = this.getPhoneGapPath(source)+"anno/pages/auth/main.html?callback="+document.location.href;
             var ref2 = window.open(url, '_self', 'location=no');
+
+            console.error("anno auth page url: "+url);
         },
         processBasicAuthToken: function(userInfo)
         {
@@ -301,7 +321,7 @@ define([
         },
         setBasicAuthToken: function(token)
         {
-            if (gapi&&gapi.auth)
+            if (window.gapi&&window.gapi.auth)
             {
                 gapi.auth.setToken(token);
             }
@@ -309,7 +329,7 @@ define([
             {
                 var self = this;
                 window.setTimeout(function(){
-                    self.setAuthToken(token);
+                    self.setBasicAuthToken(token);
                 }, 50)
             }
         }

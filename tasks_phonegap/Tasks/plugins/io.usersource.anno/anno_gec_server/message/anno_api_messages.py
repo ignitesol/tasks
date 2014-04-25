@@ -21,7 +21,7 @@ class AnnoMessage(messages.Message):
     anno_text = messages.StringField(2, required=True)
     simple_x = messages.FloatField(3, required=True)
     simple_y = messages.FloatField(4, required=True)
-    image = messages.BytesField(5) #todo add required=True
+    image = messages.BytesField(5)  #todo add required=True
     anno_type = messages.StringField(6, default='simple comment')
     simple_circle_on_top = messages.BooleanField(7, required=True)
     simple_is_moved = messages.BooleanField(8, required=True)
@@ -97,6 +97,7 @@ class AnnoResponseMessage(messages.Message):
     latitude = messages.FloatField(29)
     longitude = messages.FloatField(30)
     country = messages.StringField(31)
+    last_update_type = messages.StringField(32)
 
 
 class AnnoListMessage(messages.Message):
@@ -106,3 +107,4 @@ class AnnoListMessage(messages.Message):
     anno_list = messages.MessageField(AnnoResponseMessage, 1, repeated=True)
     cursor = messages.StringField(2)
     has_more = messages.BooleanField(3)
+    offset = messages.IntegerField(4)
